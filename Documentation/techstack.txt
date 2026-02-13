@@ -1,0 +1,139 @@
+# CARELINK – Technology Stack Document
+
+## 1. Purpose of This Document
+
+This document defines the complete technology stack used to design, develop, deploy, and scale the CARELINK platform. The stack is chosen to ensure reliability in low-connectivity environments, security of medical data, scalability, and ease of maintenance.
+
+---
+
+## 2. Overall Architecture Style
+
+* Mobile-first, offline-first architecture
+* Service-oriented backend (microservices)
+* Event-driven workflows for emergencies
+* Secure, consent-based data access
+* Cloud-native deployment
+
+---
+
+## 3. Frontend Technology Stack
+
+### 3.1 Mobile Application
+
+* **Framework:** React Native
+* **Platforms:** Android (Primary), iOS (Optional)
+* **Design System:** Custom healthcare UI components
+* **Offline Storage:** SQLite (Encrypted)
+* **State Management:** Redux / Provider
+* **Internationalization:** i18n libraries
+* **Voice Input:** Web Speech API / Native Speech APIs
+
+### 3.2 Web Application
+
+* **Framework:** React.js
+* **Type:** Progressive Web App (PWA)
+* **Offline Support:** Service Workers
+* **Doctor & Admin Dashboards:** Web-based UI
+
+---
+
+## 4. Backend Technology Stack
+
+### 4.1 API Layer
+
+* **Framework:** Node.js (Express)
+* **API Style:** RESTful APIs
+* **Gateway:** API Gateway for routing, auth, rate limiting
+
+### 4.2 Microservices
+
+* Symptom Triage Service
+* Consultation Management Service
+* Emergency Orchestration Service
+* Health Records Service
+* Notification Service
+* Pharmacy Integration Service
+
+---
+
+## 5. Data & Storage Layer
+
+* **Relational Database:** PostgreSQL (Users, metadata)
+* **Document Database:** MongoDB (Medical records)
+* **Cache & Queues:** Redis
+* **Object Storage:** Cloud Object Storage (Reports, images)
+* **Local Storage:** Encrypted SQLite on device
+
+---
+
+## 6. AI / ML Technology Stack
+
+* **Rule Engine:** Custom rule-based clinical safety engine
+* **ML Frameworks:** TensorFlow Lite / Scikit-learn
+* **Model Type:** Lightweight classification models
+* **NLP:** spaCy / Indic NLP libraries
+* **Speech-to-Text:** Native STT APIs
+* **Inference Location:** On-device / Edge-first
+
+---
+
+## 7. Communication & Connectivity
+
+* **Real-Time Communication:** WebRTC (Audio/Video)
+* **Fallback Communication:** SMS & Voice Gateways
+* **Network Detection:** Native network state APIs
+
+---
+
+## 8. Security & Privacy Stack
+
+* **Encryption (In Transit):** TLS
+* **Encryption (At Rest):** AES-256
+* **Authentication:** JWT-based auth
+* **Authorization:** Role-Based Access Control (RBAC)
+* **Consent Management:** Explicit patient consent flows
+* **Audit Logging:** Centralized logs
+
+---
+
+## 9. Notifications & Messaging
+
+* **Push Notifications:** Firebase Cloud Messaging (FCM)
+* **SMS Alerts:** SMS Gateway APIs
+* **Emergency Alerts:** Priority messaging channels
+
+---
+
+## 10. DevOps & Deployment
+
+* **Containerization:** Docker
+* **Orchestration:** Kubernetes
+* **Cloud Platforms:** AWS / Azure / GCP
+* **CI/CD:** GitHub Actions / Jenkins
+* **Monitoring:** Prometheus, Grafana
+* **Logging:** ELK Stack
+
+---
+
+## 11. Testing & Quality Assurance
+
+* Unit Testing (Jest / PyTest)
+* Integration Testing
+* API Testing (Postman)
+* Offline Scenario Testing
+* Security Testing
+
+---
+
+## 12. Scalability & Future Readiness
+
+* Horizontal service scaling
+* Stateless backend services
+* Feature flag support
+* Easy integration with government systems
+
+---
+
+## 13. Conclusion
+
+The CARELINK technology stack is designed to be lightweight, secure, and resilient. It supports critical healthcare workflows in constrained environments while remaining scalable and maintainable for long-term growth.
