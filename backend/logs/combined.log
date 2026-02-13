@@ -1,0 +1,4 @@
+{"environment":"development","level":"info","message":"Server started successfully","port":"3000","timestamp":"2026-02-13 23:11:24"}
+{"environment":"development","level":"info","message":"Server started successfully","port":"3000","timestamp":"2026-02-13 23:23:22"}
+{"level":"info","message":"\u001b[0mGET /health \u001b[32m200\u001b[0m 5.808 ms - 77\u001b[0m","timestamp":"2026-02-13 23:23:57"}
+{"level":"info","message":"\u001b[0mGET /metrics \u001b[32m200\u001b[0m 0.375 ms - 285\u001b[0m","timestamp":"2026-02-13 23:23:57"}

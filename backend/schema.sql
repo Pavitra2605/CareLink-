@@ -53,13 +53,12 @@ CREATE TABLE IF NOT EXISTS consultations (
     status TEXT CHECK(
         status IN ('REQUESTED', 'ACTIVE', 'COMPLETED', 'CANCELLED')
     ) DEFAULT 'REQUESTED',
-    priority INTEGER CHECK(priority IN (1, 2, 3)) DEFAULT 3,
+    priority INTEGER NOT NULL DEFAULT 3,
     notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (doctor_id) REFERENCES users(id) ON DELETE
-    SET NULL
+    FOREIGN KEY (doctor_id) REFERENCES users(id) ON DELETE SET NULL
 );
 CREATE INDEX IF NOT EXISTS idx_consultations_patient ON consultations(patient_id);
 CREATE INDEX IF NOT EXISTS idx_consultations_doctor ON consultations(doctor_id);
