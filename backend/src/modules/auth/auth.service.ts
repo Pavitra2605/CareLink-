@@ -3,11 +3,12 @@ import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import db from '../../config/database';
 import { AppError } from '../../middleware/error.middleware';
+import { AuditService } from '../audit/audit.service';
 
 export class AuthService {
 
     // Register User
-    static async register(userData: any): Promise<any> {
+    static async register(userData: any, clientIp: string = 'UNKNOWN'): Promise<any> {
         return new Promise(async (resolve, reject) => {
             const { name, email, password, role, phone } = userData;
 
@@ -29,6 +30,9 @@ export class AuthService {
                     function (err) {
                         if (err) return reject(new AppError('Error creating user', 500));
 
+                        // Log user registration
+                        AuditService.log(id, 'USER_REGISTRATION', 'USER', id, `Email: ${email}, Role: ${role}`, clientIp);
+
                         const token = jwt.sign({ id, role }, process.env.JWT_SECRET as string, {
                             expiresIn: '1h'
                         });
@@ -44,7 +48,7 @@ export class AuthService {
     }
 
     // Login User
-    static async login(loginData: any): Promise<any> {
+    static async login(loginData: any, clientIp: string = 'UNKNOWN'): Promise<any> {
         return new Promise((resolve, reject) => {
             const { email, password } = loginData;
 
@@ -55,8 +59,13 @@ export class AuthService {
             db.get('SELECT * FROM users WHERE email = ?', [email], async (err, user: any) => {
                 if (err) return reject(new AppError('Database error', 500));
                 if (!user || !(await bcrypt.compare(password, user.password))) {
+                    // Log failed login attempt
+                    AuditService.log('UNKNOWN', 'LOGIN_FAILED', 'AUTH', 'FAILED', `Email: ${email}`, clientIp);
                     return reject(new AppError('Incorrect email or password', 401));
                 }
+
+                // Log successful login
+                AuditService.log(user.id, 'LOGIN_SUCCESS', 'AUTH', user.id, `Email: ${email}`, clientIp);
 
                 const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET as string, {
                     expiresIn: '1h'

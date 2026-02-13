@@ -43,6 +43,8 @@ CREATE TABLE IF NOT EXISTS triage_logs (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_triage_user ON triage_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_triage_severity ON triage_logs(severity);
+CREATE INDEX IF NOT EXISTS idx_triage_user_created ON triage_logs(user_id, created_at DESC);
 -- Consultations
 CREATE TABLE IF NOT EXISTS consultations (
     id TEXT PRIMARY KEY,
@@ -51,6 +53,7 @@ CREATE TABLE IF NOT EXISTS consultations (
     status TEXT CHECK(
         status IN ('REQUESTED', 'ACTIVE', 'COMPLETED', 'CANCELLED')
     ) DEFAULT 'REQUESTED',
+    priority INTEGER CHECK(priority IN (1, 2, 3)) DEFAULT 3,
     notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -61,6 +64,8 @@ CREATE TABLE IF NOT EXISTS consultations (
 CREATE INDEX IF NOT EXISTS idx_consultations_patient ON consultations(patient_id);
 CREATE INDEX IF NOT EXISTS idx_consultations_doctor ON consultations(doctor_id);
 CREATE INDEX IF NOT EXISTS idx_consultations_status ON consultations(status);
+CREATE INDEX IF NOT EXISTS idx_consultations_priority ON consultations(priority);
+CREATE INDEX IF NOT EXISTS idx_consultations_priority_status ON consultations(priority, status);
 -- Medical Records
 CREATE TABLE IF NOT EXISTS medical_records (
     id TEXT PRIMARY KEY,
@@ -79,6 +84,7 @@ CREATE INDEX IF NOT EXISTS idx_records_doctor ON medical_records(doctor_id);
 CREATE TABLE IF NOT EXISTS emergency_events (
     id TEXT PRIMARY KEY,
     patient_id TEXT NOT NULL,
+    triage_id TEXT,
     status TEXT CHECK(
         status IN ('TRIGGERED', 'IN_PROGRESS', 'RESOLVED')
     ) DEFAULT 'TRIGGERED',
@@ -86,25 +92,25 @@ CREATE TABLE IF NOT EXISTS emergency_events (
     location TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     resolved_at DATETIME,
-    FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (triage_id) REFERENCES triage_logs(id) ON DELETE SET NULL
 );
 CREATE INDEX IF NOT EXISTS idx_emergency_patient ON emergency_events(patient_id);
 CREATE INDEX IF NOT EXISTS idx_emergency_status ON emergency_events(status);
--- Audit Logs (NEW)
+CREATE INDEX IF NOT EXISTS idx_emergency_created ON emergency_events(created_at DESC);
+-- Audit Logs
 CREATE TABLE IF NOT EXISTS audit_logs (
     id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
+    user_id TEXT,
     action TEXT NOT NULL,
     resource_type TEXT NOT NULL,
     resource_id TEXT NOT NULL,
     details TEXT,
     ip_address TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP -- Note: We generally do NOT trigger foreign key cascade delete on audit logs to preserve history even if user is deleted.
-    -- However, if strict integrity is needed, we could. For audit, usually we want to keep them.
-    -- But since SQLite enforces FKs, if we delete a user, we must decide.
-    -- Let's SET NULL or restrict. For now, let's just keep the ID text, maybe not strictly enforce FK to keep log if user is gone?
-    -- Actually, safer to just store the ID as text audit trail.
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_resource ON audit_logs(resource_id);
-CREATE INDEX IF NOT EXISTS idx_audit_date ON audit_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_date ON audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_logs(action);
+CREATE INDEX IF NOT EXISTS idx_audit_user_date ON audit_logs(user_id, created_at DESC);

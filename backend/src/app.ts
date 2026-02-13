@@ -11,6 +11,8 @@ import triageRouter from './modules/triage/triage.routes';
 import consultationRouter from './modules/consultations/consultation.routes';
 import recordRouter from './modules/records/records.routes';
 import emergencyRouter from './modules/emergency/emergency.routes';
+import timelineRouter from './modules/timeline/timeline.routes';
+import analyticsRouter from './modules/analytics/analytics.routes';
 import db from './config/database';
 
 const app: Application = express();
@@ -40,10 +42,12 @@ app.use('/triage', triageRouter);
 app.use('/consultations', consultationRouter);
 app.use('/records', recordRouter);
 app.use('/emergency', emergencyRouter);
+app.use('/patients', timelineRouter);
+app.use('/admin/metrics', analyticsRouter);
 
 // Base route
 app.get('/', (req, res) => {
-    res.send('CareLink API is running...');
+    res.send('CareLink API is running... Layer 2 enhancements active');
 });
 
 // 404 Handler

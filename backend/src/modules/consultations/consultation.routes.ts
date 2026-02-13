@@ -10,6 +10,7 @@ const router = express.Router();
 router.use(protect);
 
 router.post('/request', restrictTo('PATIENT'), validate(requestConsultationSchema), ConsultationController.request);
+router.get('/queue', restrictTo('DOCTOR'), ConsultationController.getQueue);
 router.get('/me', ConsultationController.getMyConsultations);
 router.patch('/:id/status', restrictTo('DOCTOR'), validate(updateConsultationStatusSchema), ConsultationController.updateStatus);
 

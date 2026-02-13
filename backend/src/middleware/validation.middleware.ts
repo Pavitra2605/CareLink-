@@ -12,7 +12,7 @@ export const validate = (schema: ZodSchema) => (req: Request, res: Response, nex
         next();
     } catch (error) {
         if (error instanceof ZodError) {
-            const messages = error.errors.map((issue: any) => `${issue.path.join('.')} is ${issue.message}`);
+            const messages = error.issues.map((issue: any) => `${issue.path.join('.')} is ${issue.message}`);
             next(new AppError(`Validation Error: ${messages.join(', ')}`, 400));
         } else {
             next(new AppError('Invalid Input', 400));

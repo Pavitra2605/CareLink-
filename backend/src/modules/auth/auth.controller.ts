@@ -6,7 +6,8 @@ export class AuthController {
 
     static async register(req: Request, res: Response, next: NextFunction) {
         try {
-            const result = await AuthService.register(req.body);
+            const clientIp = this.getClientIp(req);
+            const result = await AuthService.register(req.body, clientIp);
             res.status(201).json({
                 status: 'success',
                 data: result
@@ -18,7 +19,8 @@ export class AuthController {
 
     static async login(req: Request, res: Response, next: NextFunction) {
         try {
-            const result = await AuthService.login(req.body);
+            const clientIp = this.getClientIp(req);
+            const result = await AuthService.login(req.body, clientIp);
             res.status(200).json({
                 status: 'success',
                 data: result
@@ -38,5 +40,20 @@ export class AuthController {
         } catch (error) {
             next(error);
         }
+    }
+
+    /**
+     * Extract client IP from request.
+     * Handles cases where app is behind proxy.
+     */
+    private static getClientIp(req: Request): string {
+        const forwarded = req.headers['x-forwarded-for'];
+        if (typeof forwarded === 'string') {
+            return forwarded.split(',')[0].trim();
+        }
+        if (Array.isArray(forwarded)) {
+            return forwarded[0].trim();
+        }
+        return req.socket.remoteAddress || 'UNKNOWN';
     }
 }
