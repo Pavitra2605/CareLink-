@@ -1,6 +1,7 @@
 import db from '../../config/database';
 import { v4 as uuidv4 } from 'uuid';
 import { AppError } from '../../middleware/error.middleware';
+import { AuditService } from '../audit/audit.service';
 
 export class ConsultationService {
 
@@ -16,6 +17,9 @@ export class ConsultationService {
                 [id, patientId, status, notes],
                 function (err) {
                     if (err) return reject(new AppError('Error requesting consultation', 500));
+
+                    AuditService.log(patientId, 'REQUEST_CONSULTATION', 'CONSULTATION', id, `Notes: ${notes}`);
+
                     resolve({ id, patient_id: patientId, status, notes, created_at: new Date() });
                 }
             );
@@ -35,12 +39,6 @@ export class ConsultationService {
                     WHERE c.patient_id = ? 
                     ORDER BY c.created_at DESC`;
             } else if (role === 'DOCTOR') {
-                query = `
-                    SELECT c.*, p.name as patient_name 
-                    FROM consultations c 
-                    LEFT JOIN users p ON c.patient_id = p.id 
-                    WHERE c.doctor_id = ? OR c.status = 'REQUESTED' 
-                    ORDER BY c.created_at DESC`;
                 // Doctors see their assignments OR unassigned requests (simplified logic)
                 // Actually, let's just show all for doctor for now or assigned. 
                 // Creating a simplified view: Doctors see logic where they are assigned.
@@ -53,11 +51,12 @@ export class ConsultationService {
                      SELECT c.*, u.name as patient_name 
                      FROM consultations c 
                      LEFT JOIN users u ON c.patient_id = u.id
-                     WHERE c.doctor_id = ?
+                     WHERE c.doctor_id = ? OR c.status = 'REQUESTED'
                      ORDER BY c.created_at DESC
                 `;
             } else {
-                return resolve([]); // Other roles don't have consults in this simple model
+                // Other roles logic... for strictness, maybe empty or specific
+                return resolve([]);
             }
 
             db.all(query, params, (err, rows) => {
@@ -71,22 +70,36 @@ export class ConsultationService {
         return new Promise((resolve, reject) => {
             const allowedStatuses = ['ACTIVE', 'COMPLETED', 'CANCELLED'];
             if (!allowedStatuses.includes(status)) {
-                return reject(new AppError('Invalid status', 400));
+                return reject(new AppError('Invalid desired status', 400));
             }
 
             // First check if consultation exists and if doctor can update it
             // For simplicity, any doctor can "take" a REQUESTED consult, or update one they own.
 
+            // Transaction-like check
             db.get('SELECT * FROM consultations WHERE id = ?', [consultationId], (err, row: any) => {
                 if (err) return reject(new AppError('Database error', 500));
                 if (!row) return reject(new AppError('Consultation not found', 404));
 
-                // Logic: If status is REQUESTED, Doctor can take it (become doctor_id) and set to ACTIVE
-                // If already assigned, only assigned doctor can update.
+                const currentStatus = row.status;
+
+                // Strict State Machine
+                // REQUESTED -> ACTIVE -> COMPLETED
+                // REQUESTED -> CANCELLED
+
+                let isValidTransition = false;
+                if (currentStatus === 'REQUESTED' && status === 'ACTIVE') isValidTransition = true;
+                if (currentStatus === 'ACTIVE' && status === 'COMPLETED') isValidTransition = true;
+                if (currentStatus === 'REQUESTED' && status === 'CANCELLED') isValidTransition = true;
+                // Maybe allow ACTIVE -> CANCELLED too? Let's stick to prompt: "REQUESTED -> CANCELLED"
+
+                if (!isValidTransition) {
+                    return reject(new AppError(`Invalid status transition from ${currentStatus} to ${status}`, 400));
+                }
 
                 let newDoctorId = row.doctor_id;
                 if (row.status === 'REQUESTED' && status === 'ACTIVE') {
-                    newDoctorId = doctorId;
+                    newDoctorId = doctorId; // Assign doctor
                 } else if (row.doctor_id && row.doctor_id !== doctorId) {
                     return reject(new AppError('You are not assigned to this consultation', 403));
                 }
@@ -96,6 +109,9 @@ export class ConsultationService {
                     [status, newDoctorId, consultationId],
                     function (err) {
                         if (err) return reject(new AppError('Error updating consultation', 500));
+
+                        AuditService.log(doctorId, 'UPDATE_STATUS', 'CONSULTATION', consultationId, `New Status: ${status}`);
+
                         resolve({ ...row, status, doctor_id: newDoctorId });
                     }
                 );
