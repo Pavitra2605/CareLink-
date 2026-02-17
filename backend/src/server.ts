@@ -7,21 +7,27 @@ dotenv.config();
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-const server = app.listen(PORT, () => {
-    logInfo(`Server started successfully`, {
-        port: PORT,
-        environment: NODE_ENV,
-        timestamp: new Date().toISOString()
+let server: any;
+try {
+    server = app.listen(PORT, () => {
+        logInfo(`Server started successfully`, {
+            port: PORT,
+            environment: NODE_ENV,
+            timestamp: new Date().toISOString()
+        });
+        
+        if (NODE_ENV !== 'production') {
+            console.log(`\n🚀 CareLink Backend Running`);
+            console.log(`   URL: http://localhost:${PORT}`);
+            console.log(`   API Docs: http://localhost:${PORT}/api-docs`);
+            console.log(`   Health: http://localhost:${PORT}/health`);
+            console.log(`   Metrics: http://localhost:${PORT}/metrics\n`);
+        }
     });
-    
-    if (NODE_ENV !== 'production') {
-        console.log(`\n🚀 CareLink Backend Running`);
-        console.log(`   URL: http://localhost:${PORT}`);
-        console.log(`   API Docs: http://localhost:${PORT}/api-docs`);
-        console.log(`   Health: http://localhost:${PORT}/health`);
-        console.log(`   Metrics: http://localhost:${PORT}/metrics\n`);
-    }
-});
+} catch (error) {
+    console.error('Error starting server:', error);
+    process.exit(1);
+}
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err: any) => {
@@ -38,6 +44,7 @@ process.on('unhandledRejection', (err: any) => {
 // Handle uncaught exceptions
 process.on('uncaughtException', (err: Error) => {
     logError('UNCAUGHT EXCEPTION - Shutting down', err);
+    console.error('Full error details:', err);
     process.exit(1);
 });
 

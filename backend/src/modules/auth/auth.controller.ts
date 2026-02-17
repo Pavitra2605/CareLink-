@@ -6,7 +6,7 @@ export class AuthController {
 
     static async register(req: Request, res: Response, next: NextFunction) {
         try {
-            const clientIp = this.getClientIp(req);
+            const clientIp = AuthController.getClientIp(req);
             const result = await AuthService.register(req.body, clientIp);
             res.status(201).json({
                 status: 'success',
@@ -19,7 +19,7 @@ export class AuthController {
 
     static async login(req: Request, res: Response, next: NextFunction) {
         try {
-            const clientIp = this.getClientIp(req);
+            const clientIp = AuthController.getClientIp(req);
             const result = await AuthService.login(req.body, clientIp);
             res.status(200).json({
                 status: 'success',

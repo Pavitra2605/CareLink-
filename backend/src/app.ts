@@ -28,9 +28,13 @@ app.use(helmet({
     hsts: { maxAge: 31536000, includeSubDomains: true, preload: true }
 }));
 
-// CORS Configuration
+// CORS Configuration - Support multiple origins
+const corsOrigins = process.env.CORS_ORIGIN 
+    ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+    : ['http://localhost:3000'];
+
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: corsOrigins,
     credentials: true,
     optionsSuccessStatus: 200
 }));
@@ -140,15 +144,15 @@ app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec, {
     customCss: '.topbar { display: none }'
 }));
 
-// Routes
-app.use('/auth', authRouter);
-app.use('/users', userRouter);
-app.use('/triage', triageRouter);
-app.use('/consultations', consultationRouter);
-app.use('/records', recordRouter);
-app.use('/emergency', emergencyRouter);
-app.use('/patients', timelineRouter);
-app.use('/admin/metrics', analyticsRouter);
+// Routes with /api prefix
+app.use('/api/auth', authRouter);
+app.use('/api/users', userRouter);
+app.use('/api/triage', triageRouter);
+app.use('/api/consultations', consultationRouter);
+app.use('/api/records', recordRouter);
+app.use('/api/emergency', emergencyRouter);
+app.use('/api/patients', timelineRouter);
+app.use('/api/admin/metrics', analyticsRouter);
 
 /**
  * @swagger

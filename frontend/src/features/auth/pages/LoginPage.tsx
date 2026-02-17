@@ -27,11 +27,21 @@ const LoginPage = () => {
     }
 
     try {
+      console.log('Attempting login with:', { email: formData.email });
       await login(formData.email, formData.password);
+      console.log('Login successful, token stored');
+      
       toast.success('Login successful!');
-      navigate('/dashboard');
+      
+      // Small delay to ensure state is updated
+      setTimeout(() => {
+        console.log('Redirecting to dashboard');
+        navigate('/dashboard', { replace: true });
+      }, 500);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      console.error('Login error:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Login failed';
+      toast.error(errorMessage);
     }
   };
 

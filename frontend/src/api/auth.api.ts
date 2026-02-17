@@ -7,7 +7,6 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
-  refreshToken: string;
   user: {
     id: string;
     email: string;
@@ -40,14 +39,16 @@ const authAPI = {
   register: (data: RegisterRequest) =>
     api.post<LoginResponse>('/auth/register', data),
 
-  refresh: (refreshToken: string) =>
-    api.post<LoginResponse>('/auth/refresh', { refreshToken }),
+  me: () =>
+    api.get<any>('/auth/me'),
 
-  getProfile: () =>
-    api.get<any>('/auth/profile'),
+  // Refresh token endpoint - to be implemented
+  // refresh: (refreshToken: string) =>
+  //   api.post<LoginResponse>('/auth/refresh', { refreshToken }),
 
-  logout: () =>
-    api.post('/auth/logout'),
+  // Logout endpoint - to be implemented (optional for JWT)
+  // logout: () =>
+  //   api.post('/auth/logout'),
 };
 
 export default authAPI;

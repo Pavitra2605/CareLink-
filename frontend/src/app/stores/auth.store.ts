@@ -13,7 +13,6 @@ export interface User {
 
 interface AuthState {
   token: string | null;
-  refreshToken: string | null;
   user: User | null;
   isLoading: boolean;
   error: string | null;
@@ -28,9 +27,8 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       token: null,
-      refreshToken: null,
       user: null,
       isLoading: false,
       error: null,
@@ -38,15 +36,24 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
         try {
+          console.log('Auth store: Calling login API...');
           const { data } = await authAPI.login({ email, password });
+          console.log('Auth store: API response received', { token: data.token?.substring(0, 20) + '...', user: data.user });
+          
           set({
             token: data.token,
-            refreshToken: data.refreshToken,
             user: data.user,
             isLoading: false,
           });
+          
+          const state = get();
+          console.log('Auth store: State verified:', { 
+            token: state.token?.substring(0, 20) + '...', 
+            user: state.user 
+          });
         } catch (error: any) {
-          const message = error.response?.data?.message || 'Login failed';
+          console.error('Auth store: Login failed', error);
+          const message = error.response?.data?.message || error.message || 'Login failed';
           set({ error: message, isLoading: false });
           throw error;
         }
@@ -58,7 +65,6 @@ export const useAuthStore = create<AuthState>()(
           const { data } = await authAPI.register({ email, password, name, phone, role });
           set({
             token: data.token,
-            refreshToken: data.refreshToken,
             user: data.user,
             isLoading: false,
           });
@@ -72,7 +78,6 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         set({
           token: null,
-          refreshToken: null,
           user: null,
           error: null,
         });
@@ -85,7 +90,6 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-storage',
       partialize: (state) => ({
         token: state.token,
-        refreshToken: state.refreshToken,
         user: state.user,
       }),
     }
