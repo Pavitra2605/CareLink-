@@ -1,24 +1,44 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, Alert, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Gradients, Radius } from '../../theme';
 import { Button, Input } from '../../components/common';
+import { useAuth } from '../../context/AuthContext';
 
 export default function SignUpScreen({ navigation }) {
   const [form, setForm] = useState({ name: '', age: '', gender: '', phone: '', email: '', password: '', confirmPassword: '' });
   const [loading, setLoading] = useState(false);
   const [selectedGender, setSelectedGender] = useState('');
+  const { signUp } = useAuth();
 
   const updateField = (key, value) => setForm({ ...form, [key]: value });
   const genders = ['Male', 'Female', 'Other'];
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
+    if (!form.email || !form.password) {
+      Alert.alert('Missing fields', 'Email and password are required.');
+      return;
+    }
+    if (form.password !== form.confirmPassword) {
+      Alert.alert('Password Mismatch', 'Passwords do not match.');
+      return;
+    }
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      navigation.replace('Permissions');
-    }, 1500);
+    const { error } = await signUp(form.email.trim(), form.password, {
+      full_name: form.name,
+      phone: form.phone,
+      age: form.age,
+      gender: selectedGender,
+    });
+    setLoading(false);
+    if (error) {
+      Alert.alert('Sign Up Failed', error.message);
+    } else {
+      Alert.alert('Check your email', 'A confirmation link has been sent to your email address.', [
+        { text: 'OK', onPress: () => navigation.navigate('Login') },
+      ]);
+    }
   };
 
   return (
@@ -52,8 +72,9 @@ export default function SignUpScreen({ navigation }) {
             <Input label="Phone Number" placeholder="Enter phone number" value={form.phone}
               onChangeText={(v) => updateField('phone', v)} keyboardType="phone-pad"
               icon={<Ionicons name="call-outline" size={20} color={Colors.textMuted} />} />
-            <Input label="Email (Optional)" placeholder="Enter email" value={form.email}
+            <Input label="Email" placeholder="Enter email address" value={form.email}
               onChangeText={(v) => updateField('email', v)} keyboardType="email-address"
+              autoCapitalize="none"
               icon={<Ionicons name="mail-outline" size={20} color={Colors.textMuted} />} />
             <Input label="Create Password" placeholder="Min 6 characters" value={form.password}
               onChangeText={(v) => updateField('password', v)} secureTextEntry

@@ -1,21 +1,29 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, Alert, StyleSheet, ScrollView, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Gradients } from '../../theme';
 import { Button, Input } from '../../components/common';
+import { useAuth } from '../../context/AuthContext';
 
 export default function LoginScreen({ navigation }) {
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const { signIn } = useAuth();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Missing fields', 'Please enter your email and password.');
+      return;
+    }
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      navigation.replace('Main');
-    }, 1500);
+    const { error } = await signIn(email.trim(), password);
+    setLoading(false);
+    if (error) {
+      Alert.alert('Login Failed', error.message);
+    }
+    // Navigation is handled automatically by auth state change in AppNavigator
   };
 
   return (
@@ -32,12 +40,13 @@ export default function LoginScreen({ navigation }) {
 
           <View style={styles.form}>
             <Input
-              label="Phone Number"
-              placeholder="Enter your phone number"
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-              icon={<Ionicons name="call-outline" size={20} color={Colors.textMuted} />}
+              label="Email"
+              placeholder="Enter your email address"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              icon={<Ionicons name="mail-outline" size={20} color={Colors.textMuted} />}
             />
             <Input
               label="Password"

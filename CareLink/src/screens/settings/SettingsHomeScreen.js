@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, Alert, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header } from '../../components/common';
+import { useAuth } from '../../context/AuthContext';
 
 const sections = [
   {
@@ -32,6 +33,15 @@ const sections = [
 ];
 
 export default function SettingsHomeScreen({ navigation }) {
+  const { signOut } = useAuth();
+
+  const handleSignOut = () => {
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Sign Out', style: 'destructive', onPress: () => signOut() },
+    ]);
+  };
+
   return (
     <View style={styles.container}>
       <Header title="Settings" onBack={() => navigation.goBack()} />
@@ -68,7 +78,7 @@ export default function SettingsHomeScreen({ navigation }) {
           </View>
         ))}
 
-        <TouchableOpacity style={styles.logoutBtn} onPress={() => navigation.navigate('Login')}>
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleSignOut}>
           <Ionicons name="log-out" size={20} color={Colors.error} />
           <Text style={styles.logoutText}>Sign Out</Text>
         </TouchableOpacity>

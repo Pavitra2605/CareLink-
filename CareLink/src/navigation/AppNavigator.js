@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights } from '../theme';
+import { useAuth } from '../context/AuthContext';
 
 // Auth screens
 import {
@@ -226,20 +227,29 @@ function SettingsStackScreen() {
 
 // ─── Root Navigator ───
 export default function AppNavigator() {
+  const { user, loading } = useAuth();
+
+  if (loading) return null; // or a loading screen
+
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {/* Auth Flow */}
-        <Stack.Screen name="Splash" component={SplashScreen} />
-        <Stack.Screen name="LanguageSelection" component={LanguageSelectionScreen} />
-        <Stack.Screen name="Onboarding" component={OnboardingScreen} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="SignUp" component={SignUpScreen} />
-        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-        <Stack.Screen name="Permissions" component={PermissionsScreen} />
-        <Stack.Screen name="OnboardingTutorial" component={OnboardingTutorialScreen} />
-        {/* Main App */}
-        <Stack.Screen name="Main" component={MainTabs} />
+        {user ? (
+          // Authenticated
+          <Stack.Screen name="Main" component={MainTabs} />
+        ) : (
+          // Auth Flow
+          <Stack.Group>
+            <Stack.Screen name="Splash" component={SplashScreen} />
+            <Stack.Screen name="LanguageSelection" component={LanguageSelectionScreen} />
+            <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="SignUp" component={SignUpScreen} />
+            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+            <Stack.Screen name="Permissions" component={PermissionsScreen} />
+            <Stack.Screen name="OnboardingTutorial" component={OnboardingTutorialScreen} />
+          </Stack.Group>
+        )}
       </Stack.Navigator>
     </NavigationContainer>
   );
