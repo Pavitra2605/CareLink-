@@ -1,54 +1,45 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  Linking, Modal, SafeAreaView, StatusBar,
+  Linking, Modal, SafeAreaView, StatusBar, ActivityIndicator,
 } from 'react-native';
+import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
-import { Header, Badge, MapboxView } from '../../components/common';
-
-/* ── Hospital data with Chennai coordinates ──────────────────────────── */
-const hospitals = [
-  {
-    id: '1', name: 'St. Joseph Hospital',
-    distance: '2.3 km', time: '8 min', type: 'Government',
-    emergency: true, phone: '108', rating: 4.2,
-    lat: 13.0833, lng: 80.2710,
-  },
-  {
-    id: '2', name: 'Apollo Multi-Specialty',
-    distance: '4.5 km', time: '15 min', type: 'Private',
-    emergency: true, phone: '044-28290200', rating: 4.5,
-    lat: 13.0569, lng: 80.2425,
-  },
-  {
-    id: '3', name: 'GH Primary Health Centre',
-    distance: '1.2 km', time: '5 min', type: 'PHC',
-    emergency: false, phone: '044-26780001', rating: 3.8,
-    lat: 13.0878, lng: 80.2785,
-  },
-  {
-    id: '4', name: 'Kaveri Medical Centre',
-    distance: '5.8 km', time: '20 min', type: 'Private',
-    emergency: true, phone: '044-24310000', rating: 4.0,
-    lat: 13.0475, lng: 80.2574,
-  },
-  {
-    id: '5', name: 'District Government Hospital',
-    distance: '6.1 km', time: '22 min', type: 'Government',
-    emergency: true, phone: '044-25361102', rating: 3.5,
-    lat: 13.0960, lng: 80.2690,
-  },
-];
-
-/* Centre of all markers */
-const MAP_CENTER = [80.2640, 13.0740];
+import { Header, MapboxView } from '../../components/common';
 
 export default function NearestHospitalsScreen({ navigation }) {
+  const [locationStatus, setLocationStatus] = useState('loading'); // 'loading' | 'ready' | 'denied'
+  const [userLocation, setUserLocation]     = useState(null);       // { lat, lng }
+  const [hospitals, setHospitals]           = useState([]);          // from Mapbox geocoding
+  const [listLoading, setListLoading]       = useState(true);
+  const [highlightedId, setHighlightedId]   = useState(null);
   const [mapModalVisible, setMapModalVisible] = useState(false);
-  const [highlightedId, setHighlightedId] = useState(null);
   const listRef = useRef(null);
 
+  /* ── Get GPS on mount ───────────────────────────────────────────── */
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setLocationStatus('denied');
+        return;
+      }
+      const loc = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      setUserLocation({ lat: loc.coords.latitude, lng: loc.coords.longitude });
+      setLocationStatus('ready');
+    })();
+  }, []);
+
+  /* ── Receive real hospital list from the map ────────────────────── */
+  const handleHospitalsFound = (list) => {
+    setHospitals(list);
+    setListLoading(false);
+  };
+
+  /* ── Tap a marker → scroll list to that card ───────────────────── */
   const handleMarkerPress = (id) => {
     setHighlightedId(id);
     const idx = hospitals.findIndex(h => h.id === id);
@@ -57,81 +48,112 @@ export default function NearestHospitalsScreen({ navigation }) {
     }
   };
 
+  /* ── Directions ─────────────────────────────────────────────────── */
   const openDirections = (item) => {
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${item.lat},${item.lng}&travelmode=driving`;
-    Linking.openURL(url);
+    Linking.openURL(
+      `https://www.google.com/maps/dir/?api=1&destination=${item.lat},${item.lng}&travelmode=driving`
+    );
   };
 
-  const renderItem = ({ item }) => {
+  /* ── Render hospital card ───────────────────────────────────────── */
+  const renderItem = ({ item, index }) => {
     const isHighlighted = item.id === highlightedId;
     return (
-      <View style={[
-        styles.card, Shadows.soft,
-        isHighlighted && styles.cardHighlighted,
-      ]}>
-        <View style={styles.cardHeader}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.name}>{item.name}</Text>
-            <View style={styles.tagRow}>
-              <Badge
-                label={item.type}
-                variant={item.type === 'Government' ? 'info' : item.type === 'PHC' ? 'neutral' : 'warning'}
-                size="sm"
-              />
-              {item.emergency && <Badge label="24/7 ER" variant="error" size="sm" />}
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => {
+          setHighlightedId(item.id);
+        }}
+        style={[
+          styles.card, Shadows.soft,
+          isHighlighted && styles.cardHighlighted,
+        ]}
+      >
+        {/* Rank badge */}
+        <View style={styles.rankBadge}>
+          <Text style={styles.rankText}>{index + 1}</Text>
+        </View>
+
+        <View style={{ flex: 1, marginLeft: Spacing.sm }}>
+          <View style={styles.cardTop}>
+            <Text style={styles.name} numberOfLines={2}>{item.name}</Text>
+          </View>
+
+          <View style={styles.metaRow}>
+            <View style={styles.metaItem}>
+              <Ionicons name="location" size={14} color={Colors.accent} />
+              <Text style={styles.metaText}>{item.distance}</Text>
+            </View>
+            <View style={styles.metaItem}>
+              <Ionicons name="car" size={14} color={Colors.amberMid} />
+              <Text style={styles.metaText}>{item.time}</Text>
             </View>
           </View>
-          <View style={styles.ratingBox}>
-            <Ionicons name="star" size={14} color={Colors.amberMid} />
-            <Text style={styles.ratingText}>{item.rating}</Text>
+
+          <View style={styles.actionRow}>
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => openDirections(item)}
+            >
+              <Ionicons name="navigate" size={16} color={Colors.accent} />
+              <Text style={[styles.actionText, { color: Colors.accent }]}>Directions</Text>
+            </TouchableOpacity>
           </View>
         </View>
+      </TouchableOpacity>
+    );
+  };
 
-        <View style={styles.metaRow}>
-          <View style={styles.metaItem}>
-            <Ionicons name="location" size={16} color={Colors.accent} />
-            <Text style={styles.metaText}>{item.distance}</Text>
-          </View>
-          <View style={styles.metaItem}>
-            <Ionicons name="car" size={16} color={Colors.amberMid} />
-            <Text style={styles.metaText}>{item.time}</Text>
-          </View>
-        </View>
-
-        <View style={styles.actionRow}>
+  /* ── Permission denied state ────────────────────────────────────── */
+  if (locationStatus === 'denied') {
+    return (
+      <View style={styles.container}>
+        <Header title="Nearest Hospitals" onBack={() => navigation.goBack()} />
+        <View style={styles.centeredMsg}>
+          <Ionicons name="location-outline" size={48} color={Colors.textMuted} />
+          <Text style={styles.msgTitle}>Location Access Needed</Text>
+          <Text style={styles.msgSub}>
+            Please enable location permission in Settings to find hospitals near you.
+          </Text>
           <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => Linking.openURL(`tel:${item.phone}`)}
+            style={styles.settingsBtn}
+            onPress={() => Linking.openSettings()}
           >
-            <Ionicons name="call" size={18} color={Colors.success} />
-            <Text style={[styles.actionText, { color: Colors.success }]}>Call</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionBtn}
-            onPress={() => openDirections(item)}
-          >
-            <Ionicons name="navigate" size={18} color={Colors.accent} />
-            <Text style={[styles.actionText, { color: Colors.accent }]}>Directions</Text>
+            <Text style={styles.settingsBtnText}>Open Settings</Text>
           </TouchableOpacity>
         </View>
       </View>
     );
-  };
+  }
 
+  /* ── Getting location spinner ───────────────────────────────────── */
+  if (locationStatus === 'loading') {
+    return (
+      <View style={styles.container}>
+        <Header title="Nearest Hospitals" onBack={() => navigation.goBack()} />
+        <View style={styles.centeredMsg}>
+          <ActivityIndicator size="large" color={Colors.accent} />
+          <Text style={[styles.msgSub, { marginTop: Spacing.md }]}>Getting your location…</Text>
+        </View>
+      </View>
+    );
+  }
+
+  /* ── Main screen ────────────────────────────────────────────────── */
   return (
     <View style={styles.container}>
       <Header title="Nearest Hospitals" onBack={() => navigation.goBack()} />
 
-      {/* ── Inline Mapbox map ────────────────────────────────────────── */}
+      {/* ── Inline map ───────────────────────────────────────────── */}
       <View style={styles.mapWrapper}>
         <MapboxView
-          hospitals={hospitals}
-          center={MAP_CENTER}
-          zoom={11.5}
+          userLat={userLocation.lat}
+          userLng={userLocation.lng}
+          highlightedId={highlightedId}
           style={styles.map}
           onMarkerPress={handleMarkerPress}
+          onHospitalsFound={handleHospitalsFound}
         />
-        {/* Expand button */}
         <TouchableOpacity
           style={styles.expandBtn}
           onPress={() => setMapModalVisible(true)}
@@ -141,17 +163,29 @@ export default function NearestHospitalsScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* ── Hospital list ────────────────────────────────────────────── */}
-      <FlatList
-        ref={listRef}
-        data={hospitals}
-        keyExtractor={i => i.id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.list}
-        onScrollToIndexFailed={() => {}}
-      />
+      {/* ── Hospital list (from real POI data) ───────────────────── */}
+      {listLoading ? (
+        <View style={styles.listLoader}>
+          <ActivityIndicator size="small" color={Colors.accent} />
+          <Text style={styles.listLoaderText}>Finding hospitals near you…</Text>
+        </View>
+      ) : hospitals.length === 0 ? (
+        <View style={styles.centeredMsg}>
+          <Ionicons name="medical-outline" size={40} color={Colors.textMuted} />
+          <Text style={styles.msgSub}>No hospitals found nearby.</Text>
+        </View>
+      ) : (
+        <FlatList
+          ref={listRef}
+          data={hospitals}
+          keyExtractor={i => i.id}
+          renderItem={renderItem}
+          contentContainerStyle={styles.list}
+          onScrollToIndexFailed={() => {}}
+        />
+      )}
 
-      {/* ── Full-screen map modal ────────────────────────────────────── */}
+      {/* ── Full-screen map modal ─────────────────────────────────── */}
       <Modal
         visible={mapModalVisible}
         animationType="slide"
@@ -160,34 +194,25 @@ export default function NearestHospitalsScreen({ navigation }) {
       >
         <SafeAreaView style={styles.modalContainer}>
           <StatusBar barStyle="dark-content" />
-          {/* Modal header */}
           <View style={styles.modalHeader}>
-            <TouchableOpacity
-              onPress={() => setMapModalVisible(false)}
-              style={styles.modalClose}
-            >
+            <TouchableOpacity onPress={() => setMapModalVisible(false)} style={styles.modalClose}>
               <Ionicons name="chevron-down" size={24} color={Colors.textPrimary} />
             </TouchableOpacity>
             <Text style={styles.modalTitle}>Nearest Hospitals</Text>
             <View style={{ width: 40 }} />
           </View>
-
-          {/* Full-screen map */}
           <MapboxView
-            hospitals={hospitals}
-            center={MAP_CENTER}
-            zoom={11.5}
+            userLat={userLocation.lat}
+            userLng={userLocation.lng}
+            highlightedId={highlightedId}
             style={styles.fullMap}
-            onMarkerPress={(id) => {
-              setHighlightedId(id);
-            }}
+            onMarkerPress={(id) => setHighlightedId(id)}
+            onHospitalsFound={() => {}}
           />
-
-          {/* Legend */}
           <View style={styles.legend}>
-            <LegendItem color="#3B7FCC" label="Government" />
-            <LegendItem color="#D94F4F" label="Private" />
-            <LegendItem color="#2E9E6B" label="PHC" />
+            <LegendItem color="#6B6BCC" label="You are here" dot />
+            <LegendItem color="#D94F4F" label="Hospital" />
+            <LegendItem color="#2E9E6B" label="Clinic / Pharmacy" />
           </View>
         </SafeAreaView>
       </Modal>
@@ -195,10 +220,14 @@ export default function NearestHospitalsScreen({ navigation }) {
   );
 }
 
-function LegendItem({ color, label }) {
+function LegendItem({ color, label, dot }) {
   return (
     <View style={styles.legendItem}>
-      <View style={[styles.legendDot, { backgroundColor: color }]} />
+      <View style={[
+        styles.legendDot,
+        { backgroundColor: color },
+        dot && styles.legendDotPulse,
+      ]} />
       <Text style={styles.legendLabel}>{label}</Text>
     </View>
   );
@@ -207,9 +236,9 @@ function LegendItem({ color, label }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bgPrimary },
 
-  /* ── Inline map ──────────────────────────────────────────────────── */
+  /* ── Map ─────────────────────────────────────────────────────────── */
   mapWrapper: {
-    height: 220,
+    height: 230,
     marginHorizontal: Spacing.base,
     marginTop: Spacing.md,
     borderRadius: Radius.lg,
@@ -218,44 +247,63 @@ const styles = StyleSheet.create({
   },
   map: { flex: 1 },
   expandBtn: {
-    position: 'absolute',
-    top: Spacing.sm,
-    right: Spacing.sm,
+    position: 'absolute', top: Spacing.sm, right: Spacing.sm,
     backgroundColor: Colors.accent,
-    borderRadius: Radius.sm,
-    padding: 6,
+    borderRadius: Radius.sm, padding: 6,
     ...Shadows.soft,
   },
 
   /* ── List ────────────────────────────────────────────────────────── */
   list: { paddingHorizontal: Spacing.base, paddingTop: Spacing.md, paddingBottom: 40 },
+  listLoader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: Spacing.sm, paddingTop: Spacing.xl,
+  },
+  listLoaderText: { fontSize: FontSizes.sm, color: Colors.textMuted },
+
   card: {
+    flexDirection: 'row',
     backgroundColor: Colors.surface,
     borderRadius: Radius.lg,
-    padding: Spacing.lg,
+    padding: Spacing.md,
     marginBottom: Spacing.md,
     borderWidth: 1.5,
     borderColor: 'transparent',
+    alignItems: 'flex-start',
   },
   cardHighlighted: {
     borderColor: Colors.accent,
     backgroundColor: Colors.accentLight,
   },
-  cardHeader: { flexDirection: 'row', alignItems: 'flex-start' },
+  rankBadge: {
+    width: 28, height: 28, borderRadius: 14,
+    backgroundColor: Colors.accentMuted,
+    alignItems: 'center', justifyContent: 'center',
+    marginTop: 2,
+  },
+  rankText: { fontSize: FontSizes.sm, fontWeight: FontWeights.bold, color: Colors.accent },
+  cardTop: { marginBottom: Spacing.xs },
   name: { fontSize: FontSizes.base, fontWeight: FontWeights.semiBold, color: Colors.textPrimary },
-  tagRow: { flexDirection: 'row', gap: Spacing.xs, marginTop: Spacing.xs },
-  ratingBox: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  ratingText: { fontSize: FontSizes.sm, fontWeight: FontWeights.semiBold, color: Colors.textPrimary },
-  metaRow: { flexDirection: 'row', gap: Spacing.lg, marginTop: Spacing.md },
+  metaRow: { flexDirection: 'row', gap: Spacing.lg, marginBottom: Spacing.xs },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   metaText: { fontSize: FontSizes.sm, color: Colors.textMuted },
-  actionRow: {
-    flexDirection: 'row', gap: Spacing.lg,
-    marginTop: Spacing.md, paddingTop: Spacing.md,
-    borderTopWidth: 1, borderTopColor: Colors.border,
+  actionRow: { flexDirection: 'row', gap: Spacing.lg },
+  actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  actionText: { fontSize: FontSizes.sm, fontWeight: FontWeights.medium },
+
+  /* ── Empty / error states ────────────────────────────────────────── */
+  centeredMsg: {
+    flex: 1, alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: Spacing.xl, gap: Spacing.sm,
   },
-  actionBtn: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
-  actionText: { fontSize: FontSizes.md, fontWeight: FontWeights.medium },
+  msgTitle: { fontSize: FontSizes.lg, fontWeight: FontWeights.semiBold, color: Colors.textPrimary },
+  msgSub: { fontSize: FontSizes.sm, color: Colors.textMuted, textAlign: 'center' },
+  settingsBtn: {
+    marginTop: Spacing.md,
+    paddingHorizontal: Spacing.xl, paddingVertical: Spacing.sm,
+    backgroundColor: Colors.accent, borderRadius: Radius.md,
+  },
+  settingsBtnText: { color: Colors.white, fontWeight: FontWeights.semiBold },
 
   /* ── Full-screen modal ───────────────────────────────────────────── */
   modalContainer: { flex: 1, backgroundColor: Colors.surface },
@@ -276,5 +324,6 @@ const styles = StyleSheet.create({
   },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   legendDot: { width: 10, height: 10, borderRadius: 5 },
+  legendDotPulse: { borderWidth: 2, borderColor: 'rgba(107,107,204,0.4)' },
   legendLabel: { fontSize: FontSizes.sm, color: Colors.textSecondary },
 });
