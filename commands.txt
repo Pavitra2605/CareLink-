@@ -1,0 +1,1 @@
+eas update --channel preview --branch main --message "Update1"
