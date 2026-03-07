@@ -1,23 +1,58 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Input } from '../../components/common';
+import { useAuth } from '../../context/AuthContext';
+import { updateProfile } from '../../services/userService';
 
 export default function EditProfileScreen({ navigation }) {
-  const [name, setName] = useState('Rajesh Kumar');
-  const [age, setAge] = useState('34');
-  const [gender, setGender] = useState('Male');
-  const [blood, setBlood] = useState('A+');
-  const [phone, setPhone] = useState('+91 9876543210');
-  const [email, setEmail] = useState('rajesh@email.com');
-  const [height, setHeight] = useState('175');
-  const [weight, setWeight] = useState('72');
-  const [emergency, setEmergency] = useState('+91 9876543211');
-  const [allergies, setAllergies] = useState('Penicillin, Dust');
+  const { user, profile, refreshProfile } = useAuth();
+  const [name, setName] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('');
+  const [blood, setBlood] = useState('');
+  const [phone, setPhone] = useState('');
+  const [emergency, setEmergency] = useState('');
+  const [emergencyName, setEmergencyName] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  // Populate fields from profile whenever it loads
+  useEffect(() => {
+    if (profile) {
+      setName(profile.full_name ?? '');
+      setAge(profile.age != null ? String(profile.age) : '');
+      setGender(profile.gender ?? '');
+      setBlood(profile.blood_group ?? '');
+      setPhone(profile.phone ?? '');
+      setEmergency(profile.emg_contact_phone ?? '');
+      setEmergencyName(profile.emg_contact_name ?? '');
+    }
+  }, [profile]);
 
   const genders = ['Male', 'Female', 'Other'];
   const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
+
+  const handleSave = async () => {
+    if (!user?.id) return;
+    setSaving(true);
+    const { error } = await updateProfile(user.id, {
+      full_name:         name.trim() || null,
+      age:               age ? parseInt(age, 10) : null,
+      gender:            gender || null,
+      blood_group:       blood || null,
+      phone:             phone.trim() || null,
+      emg_contact_name:  emergencyName.trim() || null,
+      emg_contact_phone: emergency.trim() || null,
+    });
+    setSaving(false);
+    if (error) {
+      Alert.alert('Save Failed', error.message);
+    } else {
+      refreshProfile();
+      navigation.goBack();
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -64,26 +99,21 @@ export default function EditProfileScreen({ navigation }) {
 
         <Input label="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad"
           leftIcon={<Ionicons name="call-outline" size={18} color={Colors.textMuted} />} />
-        <Input label="Email" value={email} onChangeText={setEmail} keyboardType="email-address"
-          leftIcon={<Ionicons name="mail-outline" size={18} color={Colors.textMuted} />} />
 
-        <View style={styles.row}>
-          <View style={{ flex: 1 }}>
-            <Input label="Height (cm)" value={height} onChangeText={setHeight} keyboardType="numeric" />
-          </View>
-          <View style={{ flex: 1, marginLeft: Spacing.md }}>
-            <Input label="Weight (kg)" value={weight} onChangeText={setWeight} keyboardType="numeric" />
-          </View>
-        </View>
-
-        <Input label="Emergency Contact" value={emergency} onChangeText={setEmergency}
+        <Input label="Emergency Contact Name" value={emergencyName} onChangeText={setEmergencyName}
+          leftIcon={<Ionicons name="person-add-outline" size={18} color={Colors.error} />} />
+        <Input label="Emergency Contact Phone" value={emergency} onChangeText={setEmergency}
           keyboardType="phone-pad"
           leftIcon={<Ionicons name="warning-outline" size={18} color={Colors.error} />} />
-        <Input label="Known Allergies" value={allergies} onChangeText={setAllergies}
-          leftIcon={<Ionicons name="alert-circle-outline" size={18} color={Colors.amberMid} />} />
 
-        <Button title="Save Changes" variant="primary" size="lg"
-          onPress={() => navigation.goBack()} style={{ marginTop: Spacing.lg }} />
+        <Button
+          title={saving ? 'Saving…' : 'Save Changes'}
+          variant="primary"
+          size="lg"
+          onPress={handleSave}
+          disabled={saving}
+          style={{ marginTop: Spacing.lg }}
+        />
 
         <View style={{ height: 40 }} />
       </ScrollView>

@@ -33,7 +33,16 @@ const sections = [
 ];
 
 export default function SettingsHomeScreen({ navigation }) {
-  const { signOut } = useAuth();
+  const { signOut, profile, user } = useAuth();
+
+  const displayName = profile?.full_name || user?.email?.split('@')[0] || 'My Account';
+  const initials = displayName
+    .split(' ')
+    .map(w => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+  const displaySub = profile?.phone || user?.email || '';
 
   const handleSignOut = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -50,11 +59,11 @@ export default function SettingsHomeScreen({ navigation }) {
         <TouchableOpacity style={[styles.profileCard, Shadows.soft]}
           onPress={() => navigation.navigate('ProfileSettings')} activeOpacity={0.7}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>AK</Text>
+            <Text style={styles.avatarText}>{initials}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.name}>Anitha K.</Text>
-            <Text style={styles.phone}>+91 98765 43210</Text>
+            <Text style={styles.name}>{displayName}</Text>
+            {displaySub ? <Text style={styles.phone}>{displaySub}</Text> : null}
           </View>
           <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
         </TouchableOpacity>

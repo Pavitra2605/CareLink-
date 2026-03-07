@@ -5,11 +5,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Gradients, Shadows } from '../../theme';
 import { QuickAction, Card, AppointmentCard, Badge } from '../../components/common';
+import { useAuth } from '../../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen({ navigation }) {
   const insets = useSafeAreaInsets();
+  const { profile, user } = useAuth();
+  const displayName = profile?.full_name || user?.email?.split('@')[0] || 'there';
 
   const quickActions = [
     { icon: 'videocam', label: 'Consult\nDoctor', color: Colors.accent, onPress: () => navigation.navigate('ConsultSpecialty') },
@@ -32,7 +35,7 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>Good Morning 👋</Text>
-            <Text style={styles.userName}>Kabilash</Text>
+            <Text style={styles.userName}>{displayName}</Text>
           </View>
           <View style={styles.headerRight}>
             <TouchableOpacity onPress={() => navigation.navigate('HealthTab', { screen: 'SyncStatus' })} style={styles.syncBadge}>
@@ -42,6 +45,9 @@ export default function HomeScreen({ navigation }) {
             <TouchableOpacity onPress={() => navigation.navigate('Notifications')} style={styles.bellWrap}>
               <Ionicons name="notifications-outline" size={24} color={Colors.textPrimary} />
               <View style={styles.notifDot} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.gearBtn}>
+              <Ionicons name="settings-outline" size={24} color={Colors.textPrimary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -177,6 +183,7 @@ const styles = StyleSheet.create({
     position: 'absolute', top: 6, right: 6, width: 8, height: 8,
     borderRadius: 4, backgroundColor: Colors.error,
   },
+  gearBtn: { padding: Spacing.xs },
   emergencyBanner: {
     flexDirection: 'row', alignItems: 'center', borderRadius: Radius.lg,
     padding: Spacing.base, marginBottom: Spacing.lg,

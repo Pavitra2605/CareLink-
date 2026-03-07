@@ -1,16 +1,52 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
-import { Header, Button, Input, Card } from '../../components/common';
+import { Header, Button, Input } from '../../components/common';
+import { useAuth } from '../../context/AuthContext';
+import { updateProfile } from '../../services/userService';
 
 export default function ProfileSettingsScreen({ navigation }) {
-  const [form, setForm] = useState({
-    name: 'Anitha K.', phone: '+91 98765 43210', email: 'anitha.k@email.com',
-    age: '32', gender: 'Female', blood: 'B+',
-  });
+  const { user, profile, refreshProfile } = useAuth();
+  const [form, setForm] = useState({ name: '', phone: '', age: '', gender: '', blood: '' });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setForm({
+        name:   profile.full_name   ?? '',
+        phone:  profile.phone       ?? '',
+        age:    profile.age != null ? String(profile.age) : '',
+        gender: profile.gender      ?? '',
+        blood:  profile.blood_group ?? '',
+      });
+    }
+  }, [profile]);
 
   const updateField = (key, val) => setForm(prev => ({ ...prev, [key]: val }));
+
+  const initials = form.name
+    ? form.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
+    : (user?.email?.[0] ?? '?').toUpperCase();
+
+  const handleSave = async () => {
+    if (!user?.id) return;
+    setSaving(true);
+    const { error } = await updateProfile(user.id, {
+      full_name:   form.name.trim()  || null,
+      phone:       form.phone.trim() || null,
+      age:         form.age ? parseInt(form.age, 10) : null,
+      gender:      form.gender       || null,
+      blood_group: form.blood        || null,
+    });
+    setSaving(false);
+    if (error) {
+      Alert.alert('Save Failed', error.message);
+    } else {
+      refreshProfile();
+      navigation.goBack();
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -19,7 +55,7 @@ export default function ProfileSettingsScreen({ navigation }) {
         {/* Avatar */}
         <View style={styles.avatarSection}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>AK</Text>
+            <Text style={styles.avatarText}>{initials}</Text>
           </View>
           <TouchableOpacity style={styles.changePhotoBtn}>
             <Ionicons name="camera" size={16} color={Colors.accent} />
@@ -27,10 +63,10 @@ export default function ProfileSettingsScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        <Input label="Full Name" value={form.name} onChangeText={v => updateField('name', v)} icon="person" />
-        <Input label="Phone Number" value={form.phone} onChangeText={v => updateField('phone', v)} icon="call" />
-        <Input label="Email" value={form.email} onChangeText={v => updateField('email', v)} icon="mail" />
-        <Input label="Age" value={form.age} onChangeText={v => updateField('age', v)} icon="calendar" />
+        <Input label="Full Name" value={form.name} onChangeText={v => updateField('name', v)} />
+        <Input label="Phone Number" value={form.phone} onChangeText={v => updateField('phone', v)} keyboardType="phone-pad" />
+        <Input label="Email" value={user?.email ?? ''} editable={false} />
+        <Input label="Age" value={form.age} onChangeText={v => updateField('age', v)} keyboardType="numeric" />
 
         <Text style={styles.label}>Gender</Text>
         <View style={styles.chipRow}>
@@ -54,7 +90,7 @@ export default function ProfileSettingsScreen({ navigation }) {
           ))}
         </View>
 
-        <Button label="Save Changes" onPress={() => navigation.goBack()} style={{ marginTop: Spacing.xl }} />
+        <Button title={saving ? 'Saving…' : 'Save Changes'} onPress={handleSave} disabled={saving} style={{ marginTop: Spacing.xl }} />
       </ScrollView>
     </View>
   );

@@ -12,13 +12,18 @@ export function AuthProvider({ children }) {
   const [profileLoading, setProfileLoading] = useState(false);
 
   // ── Load profile for a given user ──────────────────────────
-  const loadProfile = useCallback(async (userId) => {
+  const loadProfile = useCallback(async (userId, userMetadata = {}) => {
     if (!userId) { setProfile(null); return; }
     setProfileLoading(true);
     const { data, error } = await getProfile(userId);
     if (error && error.code === 'PGRST116') {
-      // Profile row missing (trigger may not have run yet) – create it
-      const { data: created } = await upsertProfile(userId);
+      // Profile row missing (trigger may not have run yet) – create it using signup metadata
+      const { data: created } = await upsertProfile(userId, {
+        full_name: userMetadata?.full_name ?? null,
+        phone:     userMetadata?.phone     ?? null,
+        age:       userMetadata?.age       ?? null,
+        gender:    userMetadata?.gender    ?? null,
+      });
       setProfile(created ?? null);
     } else {
       setProfile(data ?? null);
@@ -36,7 +41,7 @@ export function AuthProvider({ children }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      loadProfile(session?.user?.id ?? null);
+      loadProfile(session?.user?.id ?? null, session?.user?.user_metadata);
       setLoading(false);
     });
 
@@ -44,7 +49,7 @@ export function AuthProvider({ children }) {
       (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        loadProfile(session?.user?.id ?? null);
+        loadProfile(session?.user?.id ?? null, session?.user?.user_metadata);
       }
     );
 

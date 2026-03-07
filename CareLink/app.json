@@ -3,6 +3,11 @@
     "name": "CareLink",
     "slug": "CareLink",
     "version": "1.0.0",
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/your-project-id",
+      "channel": "preview"
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",

@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, FontSizes, FontWeights } from '../theme';
 import { useAuth } from '../context/AuthContext';
 
@@ -66,11 +67,15 @@ import {
   AboutAppScreen, FeedbackScreen,
 } from '../screens/settings';
 
+// AI
+import { AIHomeScreen, AIChatScreen, VLMScreen } from '../screens/ai';
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 // ─── Bottom Tab Navigator ───
 function MainTabs() {
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -80,8 +85,8 @@ function MainTabs() {
         tabBarStyle: {
           backgroundColor: Colors.surface,
           borderTopColor: Colors.border,
-          height: 64,
-          paddingBottom: 8,
+          height: 64 + insets.bottom,
+          paddingBottom: 8 + insets.bottom,
           paddingTop: 6,
         },
         tabBarLabelStyle: {
@@ -90,11 +95,11 @@ function MainTabs() {
         },
         tabBarIcon: ({ focused, color, size }) => {
           const icons = {
-            HomeTab: focused ? 'home' : 'home-outline',
-            HealthTab: focused ? 'heart' : 'heart-outline',
+            HomeTab:      focused ? 'home'         : 'home-outline',
+            HealthTab:    focused ? 'heart'        : 'heart-outline',
             EmergencyTab: focused ? 'alert-circle' : 'alert-circle-outline',
-            MedicineTab: focused ? 'medkit' : 'medkit-outline',
-            SettingsTab: focused ? 'settings' : 'settings-outline',
+            MedicineTab:  focused ? 'medkit'       : 'medkit-outline',
+            AITab:        focused ? 'sparkles'     : 'sparkles-outline',
           };
           return <Ionicons name={icons[route.name]} size={24} color={color} />;
         },
@@ -110,8 +115,19 @@ function MainTabs() {
         }}
       />
       <Tab.Screen name="MedicineTab" component={MedicineStackScreen} options={{ tabBarLabel: 'Medicine' }} />
-      <Tab.Screen name="SettingsTab" component={SettingsStackScreen} options={{ tabBarLabel: 'Settings' }} />
+      <Tab.Screen name="AITab" component={AIStackScreen} options={{ tabBarLabel: 'AI Suite' }} />
     </Tab.Navigator>
+  );
+}
+
+// ─── AI Stack ───
+function AIStackScreen() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="AIHome" component={AIHomeScreen} />
+      <Stack.Screen name="AIChat" component={AIChatScreen} />
+      <Stack.Screen name="VLM" component={VLMScreen} />
+    </Stack.Navigator>
   );
 }
 
@@ -123,6 +139,15 @@ function HomeStackScreen() {
       <Stack.Screen name="Notifications" component={NotificationsListScreen} />
       <Stack.Screen name="NotificationDetail" component={NotificationDetailScreen} />
       <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} />
+      {/* Settings – accessible via gear icon in HomeScreen header */}
+      <Stack.Screen name="Settings" component={SettingsHomeScreen} />
+      <Stack.Screen name="ProfileSettings" component={ProfileSettingsScreen} />
+      <Stack.Screen name="LanguageSettings" component={LanguageSettingsScreen} />
+      <Stack.Screen name="NotificationPrefs" component={NotificationPrefsScreen} />
+      <Stack.Screen name="PrivacySettings" component={PrivacySettingsScreen} />
+      <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
+      <Stack.Screen name="AboutApp" component={AboutAppScreen} />
+      <Stack.Screen name="Feedback" component={FeedbackScreen} />
       {/* Telemedicine flow */}
       <Stack.Screen name="ConsultSpecialty" component={ConsultSpecialtyScreen} />
       <Stack.Screen name="DoctorsList" component={DoctorsListScreen} />
@@ -205,22 +230,6 @@ function MedicineStackScreen() {
       <Stack.Screen name="PriceComparison" component={PriceComparisonScreen} />
       <Stack.Screen name="PrescriptionUpload" component={PrescriptionUploadScreen} />
       <Stack.Screen name="MarkPurchased" component={MarkPurchasedScreen} />
-    </Stack.Navigator>
-  );
-}
-
-// ─── Settings Stack ───
-function SettingsStackScreen() {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="SettingsHome" component={SettingsHomeScreen} />
-      <Stack.Screen name="ProfileSettings" component={ProfileSettingsScreen} />
-      <Stack.Screen name="LanguageSettings" component={LanguageSettingsScreen} />
-      <Stack.Screen name="NotificationPrefs" component={NotificationPrefsScreen} />
-      <Stack.Screen name="PrivacySettings" component={PrivacySettingsScreen} />
-      <Stack.Screen name="HelpSupport" component={HelpSupportScreen} />
-      <Stack.Screen name="AboutApp" component={AboutAppScreen} />
-      <Stack.Screen name="Feedback" component={FeedbackScreen} />
     </Stack.Navigator>
   );
 }

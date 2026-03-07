@@ -3,11 +3,20 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Share } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button } from '../../components/common';
+import { useAuth } from '../../context/AuthContext';
 
 export default function QRShareScreen({ navigation }) {
+  const { user, profile } = useAuth();
+
+  const displayName = profile?.full_name || user?.email?.split('@')[0] || 'User';
+  // Generate a stable short ID from the user UUID
+  const shortId = user?.id ? user.id.replace(/-/g, '').slice(0, 8).toUpperCase() : '00000000';
+  const healthId = `CARELINK-${new Date().getFullYear()}-${shortId}`;
+
   const handleShare = async () => {
     try {
-      await Share.share({ message: 'CareLink Health Profile: https://carelink.health/profile/rajesh-kumar' });
+      const slug = displayName.toLowerCase().replace(/\s+/g, '-');
+      await Share.share({ message: `CareLink Health Profile: https://carelink.health/profile/${slug}` });
     } catch (e) {}
   };
 
@@ -24,8 +33,8 @@ export default function QRShareScreen({ navigation }) {
             <Ionicons name="qr-code" size={160} color={Colors.accent} />
           </View>
 
-          <Text style={styles.patientName}>Rajesh Kumar</Text>
-          <Text style={styles.healthId}>CARELINK-2024-RK-00123</Text>
+          <Text style={styles.patientName}>{displayName}</Text>
+          <Text style={styles.healthId}>{healthId}</Text>
         </View>
 
         {/* Info Cards */}

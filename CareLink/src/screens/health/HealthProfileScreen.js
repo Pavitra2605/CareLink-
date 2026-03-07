@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Card, Badge, Button } from '../../components/common';
+import { useAuth } from '../../context/AuthContext';
 
 const vitalCards = [
   { label: 'Blood Pressure', value: '120/80', unit: 'mmHg', icon: 'heart', color: Colors.error, status: 'Normal' },
@@ -21,6 +22,14 @@ const quickLinks = [
 ];
 
 export default function HealthProfileScreen({ navigation }) {
+  const { profile } = useAuth();
+
+  const displayName   = profile?.full_name   || 'My Profile';
+  const displayGender = profile?.gender      || '';
+  const displayAge    = profile?.age         != null ? `${profile.age} yrs` : '';
+  const displayBlood  = profile?.blood_group || '';
+  const subInfo       = [displayGender, displayAge, displayBlood].filter(Boolean).join(' · ');
+
   return (
     <View style={styles.container}>
       <Header title="Health Records" rightAction={
@@ -35,8 +44,8 @@ export default function HealthProfileScreen({ navigation }) {
             <Ionicons name="person" size={36} color={Colors.white} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.name}>Rajesh Kumar</Text>
-            <Text style={styles.info}>Male · 34 yrs · A+</Text>
+            <Text style={styles.name}>{displayName}</Text>
+            {subInfo ? <Text style={styles.info}>{subInfo}</Text> : null}
             <View style={styles.tagRow}>
               <Badge label="Diabetic" variant="warning" size="sm" />
               <Badge label="Hypertension" variant="error" size="sm" />
@@ -115,7 +124,7 @@ export default function HealthProfileScreen({ navigation }) {
           <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
         </TouchableOpacity>
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 90 }} />
       </ScrollView>
     </View>
   );

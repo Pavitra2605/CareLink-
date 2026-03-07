@@ -82,7 +82,7 @@ export default function EmergencyHomeScreen({ navigation }) {
           </View>
         </Card>
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 90 }} />
       </ScrollView>
     </View>
   );
