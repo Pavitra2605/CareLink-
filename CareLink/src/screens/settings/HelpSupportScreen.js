@@ -3,34 +3,36 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'r
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Card, SearchBar } from '../../components/common';
-
-const faqs = [
-  { q: 'How do I book a teleconsultation?', a: 'Go to Home > Consult Doctor, select a specialty, choose a doctor, and pick a time slot.' },
-  { q: 'Is my health data safe?', a: 'Yes. All data is encrypted end-to-end and stored securely following healthcare data protection standards.' },
-  { q: 'How do I find nearby pharmacies?', a: 'Use the Medicine tab to search for a medicine. Available pharmacies with stock and prices will be shown.' },
-  { q: 'Can I use CareLink offline?', a: 'Basic features like viewing saved records and first-aid guides work offline. Data syncs when you reconnect.' },
-  { q: 'How to change my language?', a: 'Go to Settings > Language and select your preferred language.' },
-];
-
-const contactOptions = [
-  { icon: 'call', label: 'Call Support', desc: 'Toll-free: 1800-XXX-XXXX', action: () => Linking.openURL('tel:1800123456') },
-  { icon: 'chatbubble', label: 'Chat with Us', desc: 'Available 9 AM - 6 PM', action: () => {} },
-  { icon: 'mail', label: 'Email', desc: 'support@carelink.in', action: () => Linking.openURL('mailto:support@carelink.in') },
-];
+import { useLanguage } from '../../i18n';
 
 export default function HelpSupportScreen({ navigation }) {
   const [expanded, setExpanded] = useState(null);
   const [search, setSearch] = useState('');
+  const { t } = useLanguage();
+
+  const faqs = [
+    { q: t('helpSupport.faqBookConsult'), a: t('helpSupport.faqBookConsultA') },
+    { q: t('helpSupport.faqDataSafe'), a: t('helpSupport.faqDataSafeA') },
+    { q: t('helpSupport.faqPharmacy'), a: t('helpSupport.faqPharmacyA') },
+    { q: t('helpSupport.faqOffline'), a: t('helpSupport.faqOfflineA') },
+    { q: t('helpSupport.faqLanguage'), a: t('helpSupport.faqLanguageA') },
+  ];
+
+  const contactOptions = [
+    { icon: 'call', label: t('helpSupport.callSupport'), desc: t('helpSupport.callDesc'), action: () => Linking.openURL('tel:1800123456') },
+    { icon: 'chatbubble', label: t('helpSupport.chatWithUs'), desc: t('helpSupport.chatDesc'), action: () => {} },
+    { icon: 'mail', label: t('helpSupport.emailLabel'), desc: t('helpSupport.emailDesc'), action: () => Linking.openURL('mailto:support@carelink.in') },
+  ];
 
   const filteredFaqs = faqs.filter(f => f.q.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <View style={styles.container}>
-      <Header title="Help & Support" onBack={() => navigation.goBack()} />
+      <Header title={t('helpSupport.title')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
-        <SearchBar value={search} onChangeText={setSearch} placeholder="Search help topics..." />
+        <SearchBar value={search} onChangeText={setSearch} placeholder={t('helpSupport.searchPlaceholder')} />
 
-        <Text style={styles.sectionLabel}>Frequently Asked Questions</Text>
+        <Text style={styles.sectionLabel}>{t('helpSupport.faq')}</Text>
         {filteredFaqs.map((faq, i) => (
           <TouchableOpacity key={i} style={[styles.faqCard, Shadows.soft]}
             onPress={() => setExpanded(expanded === i ? null : i)} activeOpacity={0.7}>
@@ -42,7 +44,7 @@ export default function HelpSupportScreen({ navigation }) {
           </TouchableOpacity>
         ))}
 
-        <Text style={styles.sectionLabel}>Contact Us</Text>
+        <Text style={styles.sectionLabel}>{t('helpSupport.contactUs')}</Text>
         {contactOptions.map((opt, i) => (
           <TouchableOpacity key={i} style={[styles.contactCard, Shadows.soft]}
             onPress={opt.action} activeOpacity={0.7}>

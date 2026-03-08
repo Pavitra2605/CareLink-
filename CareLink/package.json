@@ -34,7 +34,8 @@
     "react-native-screens": "^4.24.0",
     "react-native-url-polyfill": "^3.0.0",
     "react-native-web": "^0.21.0",
-    "react-native-webview": "13.16.0"
+    "react-native-webview": "13.16.0",
+    "translate-google-api": "^1.0.4"
   },
   "private": true,
   "devDependencies": {

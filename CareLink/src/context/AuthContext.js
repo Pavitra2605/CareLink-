@@ -38,12 +38,18 @@ export function AuthProvider({ children }) {
 
   // ── Auth state listener ────────────────────────────────────
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      loadProfile(session?.user?.id ?? null, session?.user?.user_metadata);
-      setLoading(false);
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        loadProfile(session?.user?.id ?? null, session?.user?.user_metadata);
+      })
+      .catch((e) => {
+        console.warn('Failed to get session:', e);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {

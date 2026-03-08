@@ -5,23 +5,25 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Gradients, Radius } from '../../theme';
 import { Button, Input } from '../../components/common';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../i18n';
 
 export default function SignUpScreen({ navigation }) {
   const [form, setForm] = useState({ name: '', age: '', gender: '', phone: '', email: '', password: '', confirmPassword: '' });
   const [loading, setLoading] = useState(false);
   const [selectedGender, setSelectedGender] = useState('');
   const { signUp } = useAuth();
+  const { t } = useLanguage();
 
   const updateField = (key, value) => setForm({ ...form, [key]: value });
-  const genders = ['Male', 'Female', 'Other'];
+  const genders = [t('auth.male'), t('auth.female'), t('auth.other')];
 
   const handleSignUp = async () => {
     if (!form.email || !form.password) {
-      Alert.alert('Missing fields', 'Email and password are required.');
+      Alert.alert(t('auth.missingFields'), t('auth.emailPasswordRequired'));
       return;
     }
     if (form.password !== form.confirmPassword) {
-      Alert.alert('Password Mismatch', 'Passwords do not match.');
+      Alert.alert(t('auth.passwordMismatch'), t('auth.passwordsNoMatch'));
       return;
     }
     setLoading(true);
@@ -33,10 +35,10 @@ export default function SignUpScreen({ navigation }) {
     });
     setLoading(false);
     if (error) {
-      Alert.alert('Sign Up Failed', error.message);
+      Alert.alert(t('auth.signUpFailed'), error.message);
     } else {
-      Alert.alert('Check your email', 'A confirmation link has been sent to your email address.', [
-        { text: 'OK', onPress: () => navigation.navigate('Login') },
+      Alert.alert(t('auth.checkEmail'), t('auth.confirmationSent'), [
+        { text: t('common.ok'), onPress: () => navigation.navigate('Login') },
       ]);
     }
   };
@@ -46,17 +48,17 @@ export default function SignUpScreen({ navigation }) {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={styles.header}>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>Join CareLink for better healthcare access</Text>
+            <Text style={styles.title}>{t('auth.createAccount')}</Text>
+            <Text style={styles.subtitle}>{t('auth.joinCareLink')}</Text>
           </View>
 
           <View style={styles.form}>
-            <Input label="Full Name" placeholder="Enter your full name" value={form.name} onChangeText={(v) => updateField('name', v)}
+            <Input label={t('auth.fullName')} placeholder={t('auth.fullNamePlaceholder')} value={form.name} onChangeText={(v) => updateField('name', v)}
               icon={<Ionicons name="person-outline" size={20} color={Colors.textMuted} />} />
-            <Input label="Age" placeholder="e.g. 28" value={form.age} onChangeText={(v) => updateField('age', v)}
+            <Input label={t('auth.age')} placeholder={t('auth.agePlaceholder')} value={form.age} onChangeText={(v) => updateField('age', v)}
               keyboardType="numeric" icon={<Ionicons name="calendar-outline" size={20} color={Colors.textMuted} />} />
 
-            <Text style={styles.label}>Gender</Text>
+            <Text style={styles.label}>{t('auth.gender')}</Text>
             <View style={styles.genderRow}>
               {genders.map((g) => (
                 <TouchableOpacity
@@ -69,27 +71,27 @@ export default function SignUpScreen({ navigation }) {
               ))}
             </View>
 
-            <Input label="Phone Number" placeholder="Enter phone number" value={form.phone}
+            <Input label={t('auth.phoneNumber')} placeholder={t('auth.phonePlaceholder')} value={form.phone}
               onChangeText={(v) => updateField('phone', v)} keyboardType="phone-pad"
               icon={<Ionicons name="call-outline" size={20} color={Colors.textMuted} />} />
-            <Input label="Email" placeholder="Enter email address" value={form.email}
+            <Input label={t('auth.email')} placeholder={t('auth.emailAddressPlaceholder')} value={form.email}
               onChangeText={(v) => updateField('email', v)} keyboardType="email-address"
               autoCapitalize="none"
               icon={<Ionicons name="mail-outline" size={20} color={Colors.textMuted} />} />
-            <Input label="Create Password" placeholder="Min 6 characters" value={form.password}
+            <Input label={t('auth.createPassword')} placeholder={t('auth.minChars')} value={form.password}
               onChangeText={(v) => updateField('password', v)} secureTextEntry
               icon={<Ionicons name="lock-closed-outline" size={20} color={Colors.textMuted} />} />
-            <Input label="Confirm Password" placeholder="Re-enter password" value={form.confirmPassword}
+            <Input label={t('auth.confirmPassword')} placeholder={t('auth.reEnterPassword')} value={form.confirmPassword}
               onChangeText={(v) => updateField('confirmPassword', v)} secureTextEntry
               icon={<Ionicons name="shield-checkmark-outline" size={20} color={Colors.textMuted} />} />
 
-            <Button title="Create Account" onPress={handleSignUp} loading={loading} size="lg" style={{ marginTop: Spacing.md }} />
+            <Button title={t('auth.createAccount')} onPress={handleSignUp} loading={loading} size="lg" style={{ marginTop: Spacing.md }} />
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Already have an account? </Text>
+            <Text style={styles.footerText}>{t('auth.alreadyHaveAccount')}</Text>
             <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-              <Text style={styles.footerLink}>Sign In</Text>
+              <Text style={styles.footerLink}>{t('auth.signIn')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

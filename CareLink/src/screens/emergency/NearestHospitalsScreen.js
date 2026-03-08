@@ -7,8 +7,10 @@ import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, MapboxView } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 export default function NearestHospitalsScreen({ navigation }) {
+  const { t } = useLanguage();
   const [locationStatus, setLocationStatus] = useState('loading'); // 'loading' | 'ready' | 'denied'
   const [userLocation, setUserLocation]     = useState(null);       // { lat, lng }
   const [hospitals, setHospitals]           = useState([]);          // from Mapbox geocoding
@@ -96,7 +98,7 @@ export default function NearestHospitalsScreen({ navigation }) {
               onPress={() => openDirections(item)}
             >
               <Ionicons name="navigate" size={16} color={Colors.accent} />
-              <Text style={[styles.actionText, { color: Colors.accent }]}>Directions</Text>
+              <Text style={[styles.actionText, { color: Colors.accent }]}>{t('hospitals.directions')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -108,18 +110,18 @@ export default function NearestHospitalsScreen({ navigation }) {
   if (locationStatus === 'denied') {
     return (
       <View style={styles.container}>
-        <Header title="Nearest Hospitals" onBack={() => navigation.goBack()} />
+        <Header title={t('hospitals.title')} onBack={() => navigation.goBack()} />
         <View style={styles.centeredMsg}>
           <Ionicons name="location-outline" size={48} color={Colors.textMuted} />
-          <Text style={styles.msgTitle}>Location Access Needed</Text>
+          <Text style={styles.msgTitle}>{t('hospitals.locationNeeded')}</Text>
           <Text style={styles.msgSub}>
-            Please enable location permission in Settings to find hospitals near you.
+            {t('hospitals.locationDesc')}
           </Text>
           <TouchableOpacity
             style={styles.settingsBtn}
             onPress={() => Linking.openSettings()}
           >
-            <Text style={styles.settingsBtnText}>Open Settings</Text>
+            <Text style={styles.settingsBtnText}>{t('hospitals.openSettings')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -130,10 +132,10 @@ export default function NearestHospitalsScreen({ navigation }) {
   if (locationStatus === 'loading') {
     return (
       <View style={styles.container}>
-        <Header title="Nearest Hospitals" onBack={() => navigation.goBack()} />
+        <Header title={t('hospitals.title')} onBack={() => navigation.goBack()} />
         <View style={styles.centeredMsg}>
           <ActivityIndicator size="large" color={Colors.accent} />
-          <Text style={[styles.msgSub, { marginTop: Spacing.md }]}>Getting your location…</Text>
+          <Text style={[styles.msgSub, { marginTop: Spacing.md }]}>{t('hospitals.gettingLocation')}</Text>
         </View>
       </View>
     );
@@ -142,7 +144,7 @@ export default function NearestHospitalsScreen({ navigation }) {
   /* ── Main screen ────────────────────────────────────────────────── */
   return (
     <View style={styles.container}>
-      <Header title="Nearest Hospitals" onBack={() => navigation.goBack()} />
+      <Header title={t('hospitals.title')} onBack={() => navigation.goBack()} />
 
       {/* ── Inline map ───────────────────────────────────────────── */}
       <View style={styles.mapWrapper}>
@@ -167,12 +169,12 @@ export default function NearestHospitalsScreen({ navigation }) {
       {listLoading ? (
         <View style={styles.listLoader}>
           <ActivityIndicator size="small" color={Colors.accent} />
-          <Text style={styles.listLoaderText}>Finding hospitals near you…</Text>
+          <Text style={styles.listLoaderText}>{t('hospitals.findingHospitals')}</Text>
         </View>
       ) : hospitals.length === 0 ? (
         <View style={styles.centeredMsg}>
           <Ionicons name="medical-outline" size={40} color={Colors.textMuted} />
-          <Text style={styles.msgSub}>No hospitals found nearby.</Text>
+          <Text style={styles.msgSub}>{t('hospitals.noHospitals')}</Text>
         </View>
       ) : (
         <FlatList
@@ -198,7 +200,7 @@ export default function NearestHospitalsScreen({ navigation }) {
             <TouchableOpacity onPress={() => setMapModalVisible(false)} style={styles.modalClose}>
               <Ionicons name="chevron-down" size={24} color={Colors.textPrimary} />
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Nearest Hospitals</Text>
+            <Text style={styles.modalTitle}>{t('hospitals.title')}</Text>
             <View style={{ width: 40 }} />
           </View>
           <MapboxView
@@ -210,9 +212,9 @@ export default function NearestHospitalsScreen({ navigation }) {
             onHospitalsFound={() => {}}
           />
           <View style={styles.legend}>
-            <LegendItem color="#6B6BCC" label="You are here" dot />
-            <LegendItem color="#D94F4F" label="Hospital" />
-            <LegendItem color="#2E9E6B" label="Clinic / Pharmacy" />
+            <LegendItem color="#6B6BCC" label={t('hospitals.youAreHere')} dot />
+            <LegendItem color="#D94F4F" label={t('hospitals.hospital')} />
+            <LegendItem color="#2E9E6B" label={t('hospitals.clinicPharmacy')} />
           </View>
         </SafeAreaView>
       </Modal>

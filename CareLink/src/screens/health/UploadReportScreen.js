@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Input } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 export default function UploadReportScreen({ navigation }) {
+  const { t } = useLanguage();
   const [reportType, setReportType] = useState(null);
   const [labName, setLabName] = useState('');
   const [testDate, setTestDate] = useState('');
@@ -20,7 +22,7 @@ export default function UploadReportScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Upload Report" onBack={() => navigation.goBack()} />
+      <Header title={t('health.uploadReport')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Upload Area */}
         <TouchableOpacity style={[styles.uploadZone, Shadows.soft]} onPress={handlePickFile}>

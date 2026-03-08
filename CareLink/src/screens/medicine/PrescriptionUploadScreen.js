@@ -3,9 +3,11 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Card } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 export default function PrescriptionUploadScreen({ navigation }) {
   const [file, setFile] = useState(null);
+  const { t } = useLanguage();
 
   const handleUpload = () => {
     // Mock file pick
@@ -19,7 +21,7 @@ export default function PrescriptionUploadScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Upload Prescription" onBack={() => navigation.goBack()} />
+      <Header title={t('medicine.prescriptionUpload')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.infoBox}>
           <Ionicons name="document-text" size={32} color={Colors.accent} />

@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     padding: Spacing.md,
     width: 100,
-    minHeight: 100,
+    minHeight: 110,
     justifyContent: 'center',
   },
   iconCircle: {
@@ -42,6 +42,7 @@ const styles = StyleSheet.create({
     fontWeight: FontWeights.medium,
     color: Colors.textSecondary,
     textAlign: 'center',
+    flexShrink: 1,
   },
   badge: {
     position: 'absolute',

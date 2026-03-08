@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Badge } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const pharmacies = [
   { id: '1', name: 'Jan Aushadhi Kendra', lat: 12.97, lng: 80.17, distance: '1.2 km', available: true, price: '₹18', type: 'Government' },
@@ -12,9 +13,11 @@ const pharmacies = [
 ];
 
 export default function PharmacyMapViewScreen({ navigation }) {
+  const { t } = useLanguage();
+
   return (
     <View style={styles.container}>
-      <Header title="Pharmacy Map" onBack={() => navigation.goBack()} />
+      <Header title={t('medicine.pharmacyMapView')} onBack={() => navigation.goBack()} />
       {/* Map placeholder */}
       <View style={styles.mapPlaceholder}>
         <Ionicons name="map" size={64} color={Colors.accent} />

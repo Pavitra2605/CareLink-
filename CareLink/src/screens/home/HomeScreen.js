@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Gradients, Shadows } from '../../theme';
 import { QuickAction, Card, AppointmentCard, Badge } from '../../components/common';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../i18n';
 
 const { width } = Dimensions.get('window');
 
@@ -13,14 +14,15 @@ export default function HomeScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const { profile, user } = useAuth();
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'there';
+  const { t } = useLanguage();
 
   const quickActions = [
-    { icon: 'videocam', label: 'Consult\nDoctor', color: Colors.accent, onPress: () => navigation.navigate('ConsultSpecialty') },
-    { icon: 'warning', label: 'Emergency\nHelp', color: Colors.error, onPress: () => navigation.navigate('EmergencyTab', { screen: 'EmergencyHome' }) },
-    { icon: 'heart', label: 'My\nHealth', color: Colors.success, onPress: () => navigation.navigate('HealthTab', { screen: 'HealthProfile' }) },
-    { icon: 'medkit', label: 'Find\nMedicine', color: Colors.amberMid, onPress: () => navigation.navigate('MedicineTab', { screen: 'MedicineSearch' }) },
-    { icon: 'fitness', label: 'Symptom\nChecker', color: '#9B59B6', onPress: () => navigation.navigate('SymptomCheckerHome') },
-    { icon: 'document-text', label: 'Health\nRecords', color: '#3498DB', onPress: () => navigation.navigate('HealthTab', { screen: 'TestReports' }) },
+    { icon: 'videocam', label: t('home.consultDoctor'), color: Colors.accent, onPress: () => navigation.navigate('ConsultSpecialty') },
+    { icon: 'warning', label: t('home.emergencyHelp'), color: Colors.error, onPress: () => navigation.navigate('EmergencyTab', { screen: 'EmergencyHome' }) },
+    { icon: 'heart', label: t('home.myHealth'), color: Colors.success, onPress: () => navigation.navigate('HealthTab', { screen: 'HealthProfile' }) },
+    { icon: 'medkit', label: t('home.findMedicine'), color: Colors.amberMid, onPress: () => navigation.navigate('MedicineTab', { screen: 'MedicineSearch' }) },
+    { icon: 'fitness', label: t('home.symptomChecker'), color: '#9B59B6', onPress: () => navigation.navigate('SymptomCheckerHome') },
+    { icon: 'document-text', label: t('home.healthRecords'), color: '#3498DB', onPress: () => navigation.navigate('HealthTab', { screen: 'TestReports' }) },
   ];
 
   const mockAppointments = [
@@ -33,14 +35,14 @@ export default function HomeScreen({ navigation }) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         {/* Header */}
         <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>Good Morning 👋</Text>
-            <Text style={styles.userName}>{displayName}</Text>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={styles.greeting}>{t('home.goodMorning')}</Text>
+            <Text style={styles.userName} numberOfLines={1}>{displayName}</Text>
           </View>
           <View style={styles.headerRight}>
             <TouchableOpacity onPress={() => navigation.navigate('HealthTab', { screen: 'SyncStatus' })} style={styles.syncBadge}>
               <Ionicons name="cloud-done-outline" size={16} color={Colors.success} />
-              <Text style={styles.syncText}>Synced</Text>
+              <Text style={styles.syncText} numberOfLines={1}>{t('home.synced')}</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('Notifications')} style={styles.bellWrap}>
               <Ionicons name="notifications-outline" size={24} color={Colors.textPrimary} />
@@ -59,15 +61,15 @@ export default function HomeScreen({ navigation }) {
               <Ionicons name="pulse" size={28} color={Colors.white} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.emerTitle}>Emergency? Get Help Now</Text>
-              <Text style={styles.emerSub}>Tap for first-aid guidance & hospital directions</Text>
+              <Text style={styles.emerTitle}>{t('home.emergencyBannerTitle')}</Text>
+              <Text style={styles.emerSub}>{t('home.emergencyBannerSub')}</Text>
             </View>
             <Ionicons name="chevron-forward" size={22} color={Colors.white} />
           </LinearGradient>
         </TouchableOpacity>
 
         {/* Quick Actions */}
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <Text style={styles.sectionTitle}>{t('home.quickActions')}</Text>
         <View style={styles.actionsGrid}>
           {quickActions.map((a, i) => (
             <QuickAction
@@ -83,9 +85,9 @@ export default function HomeScreen({ navigation }) {
 
         {/* Upcoming Appointments */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Upcoming Appointments</Text>
+          <Text style={styles.sectionTitle}>{t('home.upcomingAppointments')}</Text>
           <TouchableOpacity onPress={() => navigation.navigate('ConsultationHistory')}>
-            <Text style={styles.seeAll}>See All</Text>
+            <Text style={styles.seeAll}>{t('common.seeAll')}</Text>
           </TouchableOpacity>
         </View>
         {mockAppointments.map((apt) => (
@@ -102,37 +104,37 @@ export default function HomeScreen({ navigation }) {
         ))}
 
         {/* Health Summary Card */}
-        <Card title="Health Summary" subtitle="Last updated today"
+        <Card title={t('home.healthSummary')} subtitle={t('home.lastUpdatedToday')}
           rightAction={<TouchableOpacity><Ionicons name="expand-outline" size={18} color={Colors.accent} /></TouchableOpacity>}
           onPress={() => navigation.navigate('HealthTab', { screen: 'HealthProfile' })}>
           <View style={styles.healthRow}>
             <View style={styles.healthMetric}>
               <Ionicons name="heart" size={20} color={Colors.error} />
               <Text style={styles.metricVal}>120/80</Text>
-              <Text style={styles.metricLabel}>Blood Pressure</Text>
+              <Text style={styles.metricLabel}>{t('home.bloodPressure')}</Text>
             </View>
             <View style={styles.healthMetric}>
               <Ionicons name="water" size={20} color={Colors.accent} />
               <Text style={styles.metricVal}>98</Text>
-              <Text style={styles.metricLabel}>Blood Sugar</Text>
+              <Text style={styles.metricLabel}>{t('home.bloodSugar')}</Text>
             </View>
             <View style={styles.healthMetric}>
               <Ionicons name="thermometer" size={20} color={Colors.amberMid} />
               <Text style={styles.metricVal}>98.6°F</Text>
-              <Text style={styles.metricLabel}>Temperature</Text>
+              <Text style={styles.metricLabel}>{t('home.temperature')}</Text>
             </View>
           </View>
         </Card>
 
         {/* Medication Reminders */}
-        <Card title="Today's Medications" variant="accent"
-          rightAction={<Badge label="2 due" variant="warning" size="sm" />}
+        <Card title={t('home.todaysMedications')} variant="accent"
+          rightAction={<Badge label={`2 ${t('home.due')}`} variant="warning" size="sm" />}
           onPress={() => navigation.navigate('HealthTab', { screen: 'Medications' })}>
           <View style={styles.medItem}>
             <View style={styles.medPill} />
             <View style={{ flex: 1 }}>
               <Text style={styles.medName}>Metformin 500mg</Text>
-              <Text style={styles.medTime}>After breakfast · 8:00 AM</Text>
+              <Text style={styles.medTime}>{t('home.afterBreakfast')} · 8:00 AM</Text>
             </View>
             <TouchableOpacity style={styles.medCheck}>
               <Ionicons name="checkmark-circle-outline" size={24} color={Colors.success} />
@@ -142,7 +144,7 @@ export default function HomeScreen({ navigation }) {
             <View style={[styles.medPill, { backgroundColor: Colors.amberMid }]} />
             <View style={{ flex: 1 }}>
               <Text style={styles.medName}>Amlodipine 5mg</Text>
-              <Text style={styles.medTime}>After dinner · 8:00 PM</Text>
+              <Text style={styles.medTime}>{t('home.afterDinner')} · 8:00 PM</Text>
             </View>
             <TouchableOpacity style={styles.medCheck}>
               <Ionicons name="ellipse-outline" size={24} color={Colors.textMuted} />
@@ -151,9 +153,9 @@ export default function HomeScreen({ navigation }) {
         </Card>
 
         {/* Health Tips */}
-        <Card title="💡 Health Tip of the Day">
+        <Card title={t('home.healthTipTitle')}>
           <Text style={styles.tipText}>
-            Stay hydrated! Drink at least 8 glasses of water daily. Dehydration can cause headaches, fatigue, and dizziness.
+            {t('home.healthTipText')}
           </Text>
         </Card>
 
@@ -167,17 +169,18 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bgPrimary },
   scroll: { paddingHorizontal: Spacing.base },
   header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    flexDirection: 'row', alignItems: 'center',
     paddingVertical: Spacing.lg,
   },
   greeting: { fontSize: FontSizes.md, color: Colors.textMuted },
   userName: { fontSize: FontSizes.xxl, fontWeight: FontWeights.bold, color: Colors.textPrimary, marginTop: 2 },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.md },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, flexShrink: 0, marginLeft: Spacing.sm },
   syncBadge: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.success + '15',
     paddingHorizontal: Spacing.sm, paddingVertical: 4, borderRadius: Radius.pill,
+    maxWidth: 120,
   },
-  syncText: { fontSize: FontSizes.xs, color: Colors.success, marginLeft: 4, fontWeight: FontWeights.medium },
+  syncText: { fontSize: FontSizes.xs, color: Colors.success, marginLeft: 4, fontWeight: FontWeights.medium, flexShrink: 1 },
   bellWrap: { position: 'relative', padding: Spacing.xs },
   notifDot: {
     position: 'absolute', top: 6, right: 6, width: 8, height: 8,

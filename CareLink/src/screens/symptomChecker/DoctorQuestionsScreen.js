@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Card, Badge } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const presetQuestions = [
   'What could be causing my symptoms?',
@@ -13,6 +14,7 @@ const presetQuestions = [
 ];
 
 export default function DoctorQuestionsScreen({ navigation }) {
+  const { t } = useLanguage();
   const [selected, setSelected] = useState([]);
   const [custom, setCustom] = useState('');
 
@@ -22,7 +24,7 @@ export default function DoctorQuestionsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Questions for Doctor" onBack={() => navigation.goBack()} />
+      <Header title={t('symptomChecker.doctorQuestions')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.infoBox}>
           <Ionicons name="chatbubbles" size={28} color={Colors.accent} />

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Badge } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -21,6 +22,7 @@ const scheduleData = {
 };
 
 export default function AdherenceLogScreen({ navigation }) {
+  const { t } = useLanguage();
   const [selectedDay, setSelectedDay] = useState(4); // Friday
   const [taken, setTaken] = useState({});
 
@@ -34,7 +36,7 @@ export default function AdherenceLogScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Medication Adherence" onBack={() => navigation.goBack()} />
+      <Header title={t('health.adherenceLog')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Weekly Overview */}
         <View style={[styles.weekCard, Shadows.soft]}>

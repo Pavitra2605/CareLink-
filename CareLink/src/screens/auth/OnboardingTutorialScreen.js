@@ -4,19 +4,21 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Gradients } from '../../theme';
 import { Button } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const { width } = Dimensions.get('window');
-
-const TIPS = [
-  { id: '1', icon: 'home', title: 'Your Dashboard', desc: 'Access all features from the home screen — consult doctors, check symptoms, find medicines.' },
-  { id: '2', icon: 'heart', title: 'Health Records', desc: 'Tap "My Health" to view and manage your complete medical history.' },
-  { id: '3', icon: 'warning', title: 'Emergency Help', desc: 'Use the red SOS button for immediate first-aid guidance.' },
-  { id: '4', icon: 'sync', title: 'Works Offline', desc: 'Your records are saved locally and sync automatically when connected.' },
-];
 
 export default function OnboardingTutorialScreen({ navigation }) {
   const [index, setIndex] = useState(0);
   const flatListRef = useRef(null);
+  const { t } = useLanguage();
+
+  const TIPS = [
+    { id: '1', icon: 'home', title: t('tutorial.tip1Title'), desc: t('tutorial.tip1Desc') },
+    { id: '2', icon: 'heart', title: t('tutorial.tip2Title'), desc: t('tutorial.tip2Desc') },
+    { id: '3', icon: 'warning', title: t('tutorial.tip3Title'), desc: t('tutorial.tip3Desc') },
+    { id: '4', icon: 'sync', title: t('tutorial.tip4Title'), desc: t('tutorial.tip4Desc') },
+  ];
 
   return (
     <LinearGradient colors={Gradients.bg} style={styles.container}>
@@ -42,7 +44,7 @@ export default function OnboardingTutorialScreen({ navigation }) {
         ))}
       </View>
       <View style={styles.footer}>
-        <Button title="Start Using CareLink" onPress={() => navigation.replace('Main')} size="lg" style={{ width: '100%' }} />
+        <Button title={t('tutorial.startUsing')} onPress={() => navigation.replace('Main')} size="lg" style={{ width: '100%' }} />
       </View>
     </LinearGradient>
   );

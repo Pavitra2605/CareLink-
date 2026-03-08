@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Badge, Button } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const alternatives = [
   { id: '1', name: 'Paracetamol 500mg (Generic)', brand: 'Unbranded', price: '₹8', saving: '73%', available: true },
@@ -13,6 +14,8 @@ const alternatives = [
 ];
 
 export default function GenericAlternativesScreen({ navigation }) {
+  const { t } = useLanguage();
+
   const renderItem = ({ item }) => (
     <View style={[styles.card, Shadows.soft]}>
       <View style={styles.cardHeader}>
@@ -43,7 +46,7 @@ export default function GenericAlternativesScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Generic Alternatives" onBack={() => navigation.goBack()} />
+      <Header title={t('medicine.genericAlternatives')} onBack={() => navigation.goBack()} />
       <View style={styles.infoBar}>
         <Ionicons name="information-circle" size={20} color={Colors.accent} />
         <Text style={styles.infoText}>

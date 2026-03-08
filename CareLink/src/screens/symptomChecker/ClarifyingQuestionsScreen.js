@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const questions = [
   {
@@ -32,6 +33,7 @@ const questions = [
 ];
 
 export default function ClarifyingQuestionsScreen({ navigation, route }) {
+  const { t } = useLanguage();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const current = questions[step];
@@ -58,7 +60,7 @@ export default function ClarifyingQuestionsScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Follow-Up Questions" onBack={() => navigation.goBack()} />
+      <Header title={t('symptomChecker.clarifyingQuestions')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         {/* Progress */}
         <View style={styles.progressRow}>

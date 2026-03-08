@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Card, Badge, ListItem } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const conditions = [
   { name: 'Type 2 Diabetes', since: '2020', status: 'Ongoing', icon: 'water', color: Colors.amberMid },
@@ -22,9 +23,10 @@ const familyHistory = [
 ];
 
 export default function MedicalHistoryScreen({ navigation }) {
+  const { t } = useLanguage();
   return (
     <View style={styles.container}>
-      <Header title="Medical History" onBack={() => navigation.goBack()} />
+      <Header title={t('health.medicalHistory')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Current Conditions */}
         <Text style={styles.sectionTitle}>Current & Past Conditions</Text>

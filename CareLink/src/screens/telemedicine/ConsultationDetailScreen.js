@@ -3,15 +3,17 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Badge, Card } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 export default function ConsultationDetailScreen({ navigation, route }) {
+  const { t } = useLanguage();
   const c = route?.params?.consultation || {};
 
   const modeIcons = { video: 'videocam', audio: 'call', text: 'chatbubbles' };
 
   return (
     <View style={styles.container}>
-      <Header title="Consultation Details" onBack={() => navigation.goBack()} />
+      <Header title={t('telemedicine.consultationDetail')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Status Banner */}
         <View style={[styles.banner, c.status === 'completed' ? { backgroundColor: '#E8F8E8' } : { backgroundColor: '#FDE8E8' }]}>

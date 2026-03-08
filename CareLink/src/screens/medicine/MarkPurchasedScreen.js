@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Card, Badge } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const medicines = [
   { id: '1', name: 'Paracetamol 500mg', pharmacy: 'Jan Aushadhi Kendra', price: '₹18', purchased: false },
@@ -12,6 +13,7 @@ const medicines = [
 
 export default function MarkPurchasedScreen({ navigation }) {
   const [items, setItems] = useState(medicines);
+  const { t } = useLanguage();
 
   const togglePurchased = (id) => {
     setItems(prev => prev.map(m => m.id === id ? { ...m, purchased: !m.purchased } : m));
@@ -26,7 +28,7 @@ export default function MarkPurchasedScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Mark Purchased" onBack={() => navigation.goBack()} />
+      <Header title={t('medicine.markPurchased')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.progressBox}>
           <Text style={styles.progressTitle}>Purchase Progress</Text>

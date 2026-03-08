@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Badge, SearchBar } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const pharmacies = [
   { id: '1', name: 'Jan Aushadhi Kendra', distance: '1.2 km', type: 'Government', available: true, price: '₹18', rating: 4.0, hours: '8 AM - 9 PM' },
@@ -16,6 +17,7 @@ const filters = ['All', 'Government', 'Private', 'Nearest', 'Lowest Price'];
 
 export default function PharmacyResultsScreen({ navigation }) {
   const [activeFilter, setActiveFilter] = useState('All');
+  const { t } = useLanguage();
 
   const renderItem = ({ item }) => (
     <TouchableOpacity style={[styles.card, Shadows.soft]} activeOpacity={0.7}
@@ -52,7 +54,7 @@ export default function PharmacyResultsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Nearby Pharmacies" onBack={() => navigation.goBack()} />
+      <Header title={t('medicine.pharmacyResults')} onBack={() => navigation.goBack()} />
       <View style={styles.filterRow}>
         {filters.map(f => (
           <TouchableOpacity key={f}

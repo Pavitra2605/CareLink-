@@ -4,8 +4,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button } from '../../components/common';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../i18n';
 
 export default function QRShareScreen({ navigation }) {
+  const { t } = useLanguage();
   const { user, profile } = useAuth();
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'User';
@@ -22,7 +24,7 @@ export default function QRShareScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Share Health ID" onBack={() => navigation.goBack()} />
+      <Header title={t('health.qrShare')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* QR Code Placeholder */}
         <View style={[styles.qrCard, Shadows.soft]}>

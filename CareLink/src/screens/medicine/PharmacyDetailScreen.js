@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'r
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Card, Badge } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const pharmacy = {
   name: 'Jan Aushadhi Kendra',
@@ -23,9 +24,11 @@ const pharmacy = {
 };
 
 export default function PharmacyDetailScreen({ navigation }) {
+  const { t } = useLanguage();
+
   return (
     <View style={styles.container}>
-      <Header title="Pharmacy Details" onBack={() => navigation.goBack()} />
+      <Header title={t('medicine.pharmacyDetail')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         {/* Header */}
         <View style={[styles.heroCard, Shadows.soft]}>

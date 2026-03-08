@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows, Gradients } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../i18n';
 
 const { width } = Dimensions.get('window');
 
@@ -18,6 +19,7 @@ const features = [
 ];
 
 export default function AIHomeScreen({ navigation }) {
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const firstName = profile?.full_name?.split(' ')[0] || 'there';
@@ -27,7 +29,7 @@ export default function AIHomeScreen({ navigation }) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.heading}>AI Health Suite</Text>
+          <Text style={styles.heading}>{t('ai.title')}</Text>
           <Text style={styles.sub}>Powered by CareLink AI</Text>
         </View>
 

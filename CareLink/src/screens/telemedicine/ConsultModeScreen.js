@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Card, Input } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 export default function ConsultModeScreen({ navigation, route }) {
+  const { t } = useLanguage();
   const doctor = route?.params?.doctor || {};
   const preselectedMode = route?.params?.mode || 'video';
   const [mode, setMode] = useState(preselectedMode);
@@ -18,7 +20,7 @@ export default function ConsultModeScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Consultation Mode" onBack={() => navigation.goBack()} />
+      <Header title={t('telemedicine.consultMode')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={styles.sectionTitle}>Select Mode</Text>
         <View style={styles.modeGrid}>

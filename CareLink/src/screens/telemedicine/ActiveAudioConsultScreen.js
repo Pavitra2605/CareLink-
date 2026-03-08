@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing } from '../../theme';
+import { useLanguage } from '../../i18n';
 
 export default function ActiveAudioConsultScreen({ navigation, route }) {
+  const { t } = useLanguage();
   const doctor = route?.params?.doctor || {};
   const [muted, setMuted] = useState(false);
   const [speaker, setSpeaker] = useState(false);

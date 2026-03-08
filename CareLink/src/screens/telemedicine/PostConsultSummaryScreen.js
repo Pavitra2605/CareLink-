@@ -3,13 +3,15 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Card, Badge } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 export default function PostConsultSummaryScreen({ navigation, route }) {
+  const { t } = useLanguage();
   const doctor = route?.params?.doctor || {};
 
   return (
     <View style={styles.container}>
-      <Header title="Consultation Summary" onBack={() => navigation.goBack()} />
+      <Header title={t('telemedicine.postConsultSummary')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={[styles.successCard, Shadows.soft]}>
           <View style={styles.checkCircle}>

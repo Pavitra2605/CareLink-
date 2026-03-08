@@ -4,24 +4,26 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Card } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 export default function SeverityResultScreen({ navigation, route }) {
   const type = route?.params?.type || 'Emergency';
+  const { t } = useLanguage();
   // Mock severity based on answers
   const severity = 'moderate'; // could be 'low', 'moderate', 'high', 'critical'
 
   const severityConfig = {
-    low: { color: Colors.success, bg: '#E8F5E9', icon: 'shield-checkmark', label: 'Low Severity', message: 'This does not appear to be a critical emergency. Monitor symptoms and consult a doctor if they worsen.' },
-    moderate: { color: Colors.amberMid, bg: '#FFF3E0', icon: 'warning', label: 'Moderate Severity', message: 'Seek medical attention soon. Follow the first aid steps below while waiting.' },
-    high: { color: '#FF6D00', bg: '#FFE0B2', icon: 'alert-circle', label: 'High Severity', message: 'Immediate medical attention recommended. Call emergency services if needed.' },
-    critical: { color: Colors.error, bg: '#FFEBEE', icon: 'alert', label: 'Critical — Call 108 NOW', message: 'This is a life-threatening emergency. Call 108 immediately. Start first aid now.' },
+    low: { color: Colors.success, bg: '#E8F5E9', icon: 'shield-checkmark', label: t('severity.lowSeverity'), message: t('severity.lowMessage') },
+    moderate: { color: Colors.amberMid, bg: '#FFF3E0', icon: 'warning', label: t('severity.moderateSeverity'), message: t('severity.moderateMessage') },
+    high: { color: '#FF6D00', bg: '#FFE0B2', icon: 'alert-circle', label: t('severity.highSeverity'), message: t('severity.highMessage') },
+    critical: { color: Colors.error, bg: '#FFEBEE', icon: 'alert', label: t('severity.criticalSeverity'), message: t('severity.criticalMessage') },
   };
 
   const config = severityConfig[severity];
 
   return (
     <View style={styles.container}>
-      <Header title="Assessment Result" onBack={() => navigation.goBack()} />
+      <Header title={t('severity.assessmentResult')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Severity Banner */}
         <View style={[styles.severityCard, { backgroundColor: config.bg }]}>
@@ -31,20 +33,20 @@ export default function SeverityResultScreen({ navigation, route }) {
         </View>
 
         {/* Emergency Type */}
-        <Card title="Emergency Type">
+        <Card title={t('severity.emergencyType')}>
           <Text style={styles.typeText}>{type}</Text>
         </Card>
 
         {/* Recommended Actions */}
-        <Text style={styles.sectionTitle}>Recommended Actions</Text>
+        <Text style={styles.sectionTitle}>{t('severity.recommendedActions')}</Text>
         <View style={styles.actionList}>
           <View style={styles.actionItem}>
             <View style={[styles.actionNum, { backgroundColor: Colors.error }]}>
               <Text style={styles.actionNumText}>1</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.actionTitle}>Stay Calm</Text>
-              <Text style={styles.actionDesc}>Keep the patient calm and still. Don't panic.</Text>
+              <Text style={styles.actionTitle}>{t('severity.stayCalmTitle')}</Text>
+              <Text style={styles.actionDesc}>{t('severity.stayCalmDesc')}</Text>
             </View>
           </View>
           <View style={styles.actionItem}>
@@ -52,8 +54,8 @@ export default function SeverityResultScreen({ navigation, route }) {
               <Text style={styles.actionNumText}>2</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.actionTitle}>Apply First Aid</Text>
-              <Text style={styles.actionDesc}>Follow the first aid guide for immediate care.</Text>
+              <Text style={styles.actionTitle}>{t('severity.applyFirstAidTitle')}</Text>
+              <Text style={styles.actionDesc}>{t('severity.applyFirstAidDesc')}</Text>
             </View>
           </View>
           <View style={styles.actionItem}>
@@ -61,22 +63,22 @@ export default function SeverityResultScreen({ navigation, route }) {
               <Text style={styles.actionNumText}>3</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.actionTitle}>Seek Medical Help</Text>
-              <Text style={styles.actionDesc}>Visit the nearest hospital or call emergency services.</Text>
+              <Text style={styles.actionTitle}>{t('severity.seekMedicalTitle')}</Text>
+              <Text style={styles.actionDesc}>{t('severity.seekMedicalDesc')}</Text>
             </View>
           </View>
         </View>
 
         {/* Buttons */}
         <View style={styles.actions}>
-          <Button title="View First Aid Steps" variant="primary" size="lg"
+          <Button title={t('severity.viewFirstAid')} variant="primary" size="lg"
             icon={<Ionicons name="medkit" size={18} color={Colors.white} />}
             onPress={() => navigation.navigate('FirstAidInstructions', { type })} />
-          <Button title="Find Nearest Hospital" variant="amber" size="lg"
+          <Button title={t('severity.findNearestHospital')} variant="amber" size="lg"
             icon={<Ionicons name="location" size={18} color={Colors.white} />}
             onPress={() => navigation.navigate('NearestHospitals')}
             style={{ marginTop: Spacing.md }} />
-          <Button title="Call 108 (Ambulance)" variant="danger" size="lg"
+          <Button title={t('severity.callAmbulance')} variant="danger" size="lg"
             icon={<Ionicons name="call" size={18} color={Colors.white} />}
             onPress={() => {}} style={{ marginTop: Spacing.md }} />
         </View>

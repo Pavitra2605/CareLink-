@@ -4,17 +4,19 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Gradients, Shadows } from '../../theme';
 import { Button } from '../../components/common';
-
-const PERMISSIONS = [
-  { key: 'location', icon: 'location', title: 'Location', desc: 'Find nearby pharmacies and hospitals' },
-  { key: 'camera', icon: 'camera', title: 'Camera', desc: 'Video consultations and report scanning' },
-  { key: 'microphone', icon: 'mic', title: 'Microphone', desc: 'Audio and video consultations' },
-  { key: 'storage', icon: 'folder', title: 'Storage', desc: 'Save health records offline' },
-  { key: 'notifications', icon: 'notifications', title: 'Notifications', desc: 'Appointment and medication reminders' },
-];
+import { useLanguage } from '../../i18n';
 
 export default function PermissionsScreen({ navigation }) {
   const [perms, setPerms] = useState({ location: true, camera: true, microphone: true, storage: true, notifications: true });
+  const { t } = useLanguage();
+
+  const PERMISSIONS = [
+    { key: 'location', icon: 'location', title: t('permissions.location'), desc: t('permissions.locationDesc') },
+    { key: 'camera', icon: 'camera', title: t('permissions.camera'), desc: t('permissions.cameraDesc') },
+    { key: 'microphone', icon: 'mic', title: t('permissions.microphone'), desc: t('permissions.microphoneDesc') },
+    { key: 'storage', icon: 'folder', title: t('permissions.storage'), desc: t('permissions.storageDesc') },
+    { key: 'notifications', icon: 'notifications', title: t('permissions.notifications'), desc: t('permissions.notificationsDesc') },
+  ];
 
   const toggle = (key) => setPerms({ ...perms, [key]: !perms[key] });
 
@@ -22,8 +24,8 @@ export default function PermissionsScreen({ navigation }) {
     <LinearGradient colors={Gradients.bg} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
-          <Text style={styles.title}>App Permissions</Text>
-          <Text style={styles.subtitle}>CareLink needs a few permissions to serve you best</Text>
+          <Text style={styles.title}>{t('permissions.title')}</Text>
+          <Text style={styles.subtitle}>{t('permissions.subtitle')}</Text>
         </View>
 
         {PERMISSIONS.map((p) => (
@@ -45,8 +47,8 @@ export default function PermissionsScreen({ navigation }) {
         ))}
 
         <View style={styles.footer}>
-          <Button title="Continue" onPress={() => navigation.replace('OnboardingTutorial')} size="lg" style={{ width: '100%' }} />
-          <Button title="Skip for now" variant="outline" onPress={() => navigation.replace('Main')} size="md"
+          <Button title={t('common.continue')} onPress={() => navigation.replace('OnboardingTutorial')} size="lg" style={{ width: '100%' }} />
+          <Button title={t('permissions.skipForNow')} variant="outline" onPress={() => navigation.replace('Main')} size="md"
             style={{ width: '100%', marginTop: Spacing.md }} />
         </View>
       </ScrollView>

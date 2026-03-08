@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Card } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const timeSlots = [
   '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM',
@@ -11,6 +12,7 @@ const timeSlots = [
 ];
 
 export default function FollowUpSchedulingScreen({ navigation, route }) {
+  const { t } = useLanguage();
   const doctor = route?.params?.doctor || {};
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -35,7 +37,7 @@ export default function FollowUpSchedulingScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Schedule Follow-up" onBack={() => navigation.goBack()} />
+      <Header title={t('telemedicine.followUpScheduling')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Doctor Info */}
         <View style={[styles.docCard, Shadows.soft]}>

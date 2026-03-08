@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Badge, SearchBar } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const mockMedications = [
   { id: '1', name: 'Metformin 500mg', dose: '1 tab', freq: 'Twice daily', status: 'active', refills: 2, nextRefill: '20 Jan 2025', doctor: 'Dr. Priya Sharma' },
@@ -15,6 +16,7 @@ const mockMedications = [
 const statusColors = { active: Colors.success, completed: Colors.textMuted, discontinued: Colors.error };
 
 export default function MedicationsScreen({ navigation }) {
+  const { t } = useLanguage();
   const [filter, setFilter] = useState('active');
   const [search, setSearch] = useState('');
 
@@ -26,7 +28,7 @@ export default function MedicationsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="My Medications" onBack={() => navigation.goBack()} />
+      <Header title={t('health.medications')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <SearchBar placeholder="Search medication..." value={search} onChangeText={setSearch} />
 

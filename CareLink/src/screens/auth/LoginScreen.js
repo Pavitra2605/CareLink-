@@ -5,23 +5,25 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Gradients } from '../../theme';
 import { Button, Input } from '../../components/common';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../i18n';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
+  const { t } = useLanguage();
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Missing fields', 'Please enter your email and password.');
+      Alert.alert(t('auth.missingFields'), t('auth.enterEmailPassword'));
       return;
     }
     setLoading(true);
     const { error } = await signIn(email.trim(), password);
     setLoading(false);
     if (error) {
-      Alert.alert('Login Failed', error.message);
+      Alert.alert(t('auth.loginFailed'), error.message);
     }
     // Navigation is handled automatically by auth state change in AppNavigator
   };
@@ -34,14 +36,14 @@ export default function LoginScreen({ navigation }) {
             <View style={styles.logoCircle}>
               <Text style={{ fontSize: 36 }}>💙</Text>
             </View>
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>Sign in to continue to CareLink</Text>
+            <Text style={styles.title}>{t('auth.welcomeBack')}</Text>
+            <Text style={styles.subtitle}>{t('auth.signInContinue')}</Text>
           </View>
 
           <View style={styles.form}>
             <Input
-              label="Email"
-              placeholder="Enter your email address"
+              label={t('auth.email')}
+              placeholder={t('auth.emailPlaceholder')}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -49,8 +51,8 @@ export default function LoginScreen({ navigation }) {
               icon={<Ionicons name="mail-outline" size={20} color={Colors.textMuted} />}
             />
             <Input
-              label="Password"
-              placeholder="Enter your password"
+              label={t('auth.password')}
+              placeholder={t('auth.passwordPlaceholder')}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -58,11 +60,11 @@ export default function LoginScreen({ navigation }) {
             />
 
             <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} style={styles.forgotBtn}>
-              <Text style={styles.forgotText}>Forgot Password?</Text>
+              <Text style={styles.forgotText}>{t('auth.forgotPassword')}</Text>
             </TouchableOpacity>
 
             <Button
-              title="Sign In"
+              title={t('auth.signIn')}
               onPress={handleLogin}
               loading={loading}
               size="lg"
@@ -71,12 +73,12 @@ export default function LoginScreen({ navigation }) {
 
             <View style={styles.divider}>
               <View style={styles.line} />
-              <Text style={styles.orText}>or</Text>
+              <Text style={styles.orText}>{t('common.or')}</Text>
               <View style={styles.line} />
             </View>
 
             <Button
-              title="Sign in with Biometrics"
+              title={t('auth.signInBiometrics')}
               variant="secondary"
               onPress={() => {}}
               size="lg"
@@ -86,9 +88,9 @@ export default function LoginScreen({ navigation }) {
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
+            <Text style={styles.footerText}>{t('auth.noAccount')}</Text>
             <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-              <Text style={styles.footerLink}>Sign Up</Text>
+              <Text style={styles.footerLink}>{t('auth.signUp')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

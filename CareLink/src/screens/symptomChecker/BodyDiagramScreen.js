@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const { width } = Dimensions.get('window');
 
@@ -23,6 +24,7 @@ const bodyParts = [
 ];
 
 export default function BodyDiagramScreen({ navigation }) {
+  const { t } = useLanguage();
   const [selected, setSelected] = useState([]);
   const diagramH = 420;
   const diagramW = width - Spacing.base * 2;
@@ -33,7 +35,7 @@ export default function BodyDiagramScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Select Affected Areas" onBack={() => navigation.goBack()} />
+      <Header title={t('symptomChecker.bodyDiagram')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.instr}>Tap on the areas where you feel discomfort</Text>
 

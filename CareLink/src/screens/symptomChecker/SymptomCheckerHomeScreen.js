@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows, Gradients } from '../../theme';
 import { Header, Card } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const features = [
   { icon: 'body', label: 'Body Map', desc: 'Tap to select affected area', screen: 'BodyDiagram' },
@@ -12,9 +13,10 @@ const features = [
 ];
 
 export default function SymptomCheckerHomeScreen({ navigation }) {
+  const { t } = useLanguage();
   return (
     <View style={styles.container}>
-      <Header title="Symptom Checker" onBack={() => navigation.goBack()} />
+      <Header title={t('symptomChecker.title')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         {/* Hero */}
         <LinearGradient colors={Gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}

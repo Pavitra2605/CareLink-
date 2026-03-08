@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Card } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const categories = [
   { key: 'appointments', label: 'Appointments', desc: 'Reminders and updates for consultations', icon: 'calendar' },
@@ -14,6 +15,7 @@ const categories = [
 ];
 
 export default function NotificationSettingsScreen({ navigation }) {
+  const { t } = useLanguage();
   const [masterToggle, setMasterToggle] = useState(true);
   const [settings, setSettings] = useState({
     appointments: true, medications: true, reports: true, emergency: true, pharmacy: false, system: true,
@@ -25,7 +27,7 @@ export default function NotificationSettingsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Notification Settings" onBack={() => navigation.goBack()} />
+      <Header title={t('notifications.settings')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         {/* Master toggle */}
         <View style={[styles.masterCard, Shadows.soft]}>

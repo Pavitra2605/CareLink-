@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius } from '../../theme';
 import { Header, SearchBar, DoctorCard, Badge } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const MOCK_DOCTORS = [
   { id: '1', name: 'Dr. Priya Sharma', specialty: 'General Physician', rating: '4.8', available: true, languages: 'Tamil, English', waitTime: '5 min' },
@@ -12,6 +13,7 @@ const MOCK_DOCTORS = [
 ];
 
 export default function DoctorsListScreen({ navigation, route }) {
+  const { t } = useLanguage();
   const specialty = route?.params?.specialty || 'General Physician';
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all'); // all | online | video | audio
@@ -23,7 +25,7 @@ export default function DoctorsListScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <Header title={specialty} subtitle={`${filtered.length} doctors available`} onBack={() => navigation.goBack()} />
+      <Header title={t('telemedicine.doctorsList')} subtitle={`${filtered.length} doctors available`} onBack={() => navigation.goBack()} />
       <View style={styles.content}>
         <SearchBar value={search} onChangeText={setSearch} placeholder="Search doctor..." style={styles.search} />
 

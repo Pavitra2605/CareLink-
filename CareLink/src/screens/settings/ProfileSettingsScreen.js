@@ -5,9 +5,11 @@ import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../
 import { Header, Button, Input } from '../../components/common';
 import { useAuth } from '../../context/AuthContext';
 import { updateProfile } from '../../services/userService';
+import { useLanguage } from '../../i18n';
 
 export default function ProfileSettingsScreen({ navigation }) {
   const { user, profile, refreshProfile } = useAuth();
+  const { t } = useLanguage();
   const [form, setForm] = useState({ name: '', phone: '', age: '', gender: '', blood: '' });
   const [saving, setSaving] = useState(false);
 
@@ -41,7 +43,7 @@ export default function ProfileSettingsScreen({ navigation }) {
     });
     setSaving(false);
     if (error) {
-      Alert.alert('Save Failed', error.message);
+      Alert.alert(t('profile.saveFailed'), error.message);
     } else {
       refreshProfile();
       navigation.goBack();
@@ -50,7 +52,7 @@ export default function ProfileSettingsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Profile Settings" onBack={() => navigation.goBack()} />
+      <Header title={t('profile.title')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         {/* Avatar */}
         <View style={styles.avatarSection}>
@@ -59,27 +61,27 @@ export default function ProfileSettingsScreen({ navigation }) {
           </View>
           <TouchableOpacity style={styles.changePhotoBtn}>
             <Ionicons name="camera" size={16} color={Colors.accent} />
-            <Text style={styles.changePhotoText}>Change Photo</Text>
+            <Text style={styles.changePhotoText}>{t('profile.changePhoto')}</Text>
           </TouchableOpacity>
         </View>
 
-        <Input label="Full Name" value={form.name} onChangeText={v => updateField('name', v)} />
-        <Input label="Phone Number" value={form.phone} onChangeText={v => updateField('phone', v)} keyboardType="phone-pad" />
-        <Input label="Email" value={user?.email ?? ''} editable={false} />
-        <Input label="Age" value={form.age} onChangeText={v => updateField('age', v)} keyboardType="numeric" />
+        <Input label={t('profile.fullName')} value={form.name} onChangeText={v => updateField('name', v)} />
+        <Input label={t('profile.phone')} value={form.phone} onChangeText={v => updateField('phone', v)} keyboardType="phone-pad" />
+        <Input label={t('profile.emailAddress')} value={user?.email ?? ''} editable={false} />
+        <Input label={t('profile.ageLabel')} value={form.age} onChangeText={v => updateField('age', v)} keyboardType="numeric" />
 
-        <Text style={styles.label}>Gender</Text>
+        <Text style={styles.label}>{t('profile.genderLabel')}</Text>
         <View style={styles.chipRow}>
-          {['Male', 'Female', 'Other'].map(g => (
-            <TouchableOpacity key={g}
-              style={[styles.chip, form.gender === g && styles.chipActive]}
-              onPress={() => updateField('gender', g)}>
-              <Text style={[styles.chipText, form.gender === g && styles.chipTextActive]}>{g}</Text>
+          {[{key: 'Male', label: t('profile.male')}, {key: 'Female', label: t('profile.female')}, {key: 'Other', label: t('profile.other')}].map(g => (
+            <TouchableOpacity key={g.key}
+              style={[styles.chip, form.gender === g.key && styles.chipActive]}
+              onPress={() => updateField('gender', g.key)}>
+              <Text style={[styles.chipText, form.gender === g.key && styles.chipTextActive]}>{g.label}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        <Text style={styles.label}>Blood Group</Text>
+        <Text style={styles.label}>{t('profile.bloodGroup')}</Text>
         <View style={styles.chipRow}>
           {['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map(bg => (
             <TouchableOpacity key={bg}
@@ -90,7 +92,7 @@ export default function ProfileSettingsScreen({ navigation }) {
           ))}
         </View>
 
-        <Button title={saving ? 'Saving…' : 'Save Changes'} onPress={handleSave} disabled={saving} style={{ marginTop: Spacing.xl }} />
+        <Button title={saving ? t('profile.saving') : t('profile.saveChanges')} onPress={handleSave} disabled={saving} style={{ marginTop: Spacing.xl }} />
       </ScrollView>
     </View>
   );

@@ -3,11 +3,13 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Badge, Card } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 export default function ReferralNoticeScreen({ navigation, route }) {
+  const { t } = useLanguage();
   return (
     <View style={styles.container}>
-      <Header title="Referral Notice" onBack={() => navigation.goBack()} />
+      <Header title={t('telemedicine.referralNotice')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Referral Banner */}
         <View style={[styles.referralBanner, Shadows.soft]}>

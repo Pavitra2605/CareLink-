@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Badge } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const mockLogs = [
   { id: '1', who: 'Dr. Priya Sharma', action: 'Viewed Medical History', when: '2 hours ago', type: 'view' },
@@ -18,6 +19,7 @@ const typeIcons = { view: 'eye', upload: 'cloud-upload', emergency: 'warning', s
 const typeColors = { view: Colors.accent, upload: Colors.success, emergency: Colors.error, share: Colors.amberMid, download: Colors.info };
 
 export default function AuditLogScreen({ navigation }) {
+  const { t } = useLanguage();
   const renderItem = ({ item }) => (
     <View style={[styles.logItem, Shadows.soft]}>
       <View style={[styles.iconCircle, { backgroundColor: typeColors[item.type] + '20' }]}>
@@ -33,7 +35,7 @@ export default function AuditLogScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Access Audit Log" onBack={() => navigation.goBack()} />
+      <Header title={t('health.auditLog')} onBack={() => navigation.goBack()} />
       <FlatList data={mockLogs} keyExtractor={i => i.id} renderItem={renderItem}
         contentContainerStyle={styles.list}
         ListHeaderComponent={

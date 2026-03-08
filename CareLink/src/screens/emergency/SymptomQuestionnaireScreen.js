@@ -3,18 +3,20 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button } from '../../components/common';
-
-const questions = [
-  { q: 'How long has this been happening?', options: ['Just now', 'Less than 1 hour', '1-6 hours', 'More than 6 hours'] },
-  { q: 'Rate the severity (1-10)', options: ['1-3 (Mild)', '4-6 (Moderate)', '7-8 (Severe)', '9-10 (Critical)'] },
-  { q: 'Is the person conscious?', options: ['Yes, fully alert', 'Drowsy / Confused', 'Unconscious but breathing', 'Not breathing'] },
-  { q: 'Any bleeding?', options: ['No bleeding', 'Minor bleeding', 'Moderate bleeding', 'Heavy bleeding'] },
-];
+import { useLanguage } from '../../i18n';
 
 export default function SymptomQuestionnaireScreen({ navigation, route }) {
   const type = route?.params?.type || 'Emergency';
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
+  const { t } = useLanguage();
+
+  const questions = [
+    { q: t('symptomQ.q1'), options: [t('symptomQ.q1o1'), t('symptomQ.q1o2'), t('symptomQ.q1o3'), t('symptomQ.q1o4')] },
+    { q: t('symptomQ.q2'), options: [t('symptomQ.q2o1'), t('symptomQ.q2o2'), t('symptomQ.q2o3'), t('symptomQ.q2o4')] },
+    { q: t('symptomQ.q3'), options: [t('symptomQ.q3o1'), t('symptomQ.q3o2'), t('symptomQ.q3o3'), t('symptomQ.q3o4')] },
+    { q: t('symptomQ.q4'), options: [t('symptomQ.q4o1'), t('symptomQ.q4o2'), t('symptomQ.q4o3'), t('symptomQ.q4o4')] },
+  ];
 
   const current = questions[step];
 
@@ -40,7 +42,7 @@ export default function SymptomQuestionnaireScreen({ navigation, route }) {
             <View key={i} style={[styles.progressDot, i <= step && styles.progressDotActive]} />
           ))}
         </View>
-        <Text style={styles.stepText}>Question {step + 1} of {questions.length}</Text>
+        <Text style={styles.stepText}>{t('symptomQ.questionOf', { current: step + 1, total: questions.length })}</Text>
 
         {/* Question */}
         <Text style={styles.question}>{current.q}</Text>
@@ -57,7 +59,7 @@ export default function SymptomQuestionnaireScreen({ navigation, route }) {
           </TouchableOpacity>
         ))}
 
-        <Button title={step < questions.length - 1 ? 'Next' : 'Get Assessment'}
+        <Button title={step < questions.length - 1 ? t('common.next') : t('symptomQ.getAssessment')}
           variant="primary" size="lg" disabled={!answers[step]}
           onPress={handleNext} style={{ marginTop: Spacing.xl }}
           icon={<Ionicons name={step < questions.length - 1 ? 'arrow-forward' : 'checkmark-circle'} size={18} color={Colors.white} />} />

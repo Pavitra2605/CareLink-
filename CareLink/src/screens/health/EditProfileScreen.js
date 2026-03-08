@@ -5,8 +5,10 @@ import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../
 import { Header, Button, Input } from '../../components/common';
 import { useAuth } from '../../context/AuthContext';
 import { updateProfile } from '../../services/userService';
+import { useLanguage } from '../../i18n';
 
 export default function EditProfileScreen({ navigation }) {
+  const { t } = useLanguage();
   const { user, profile, refreshProfile } = useAuth();
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
@@ -56,7 +58,7 @@ export default function EditProfileScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Edit Profile" onBack={() => navigation.goBack()} />
+      <Header title={t('health.editProfile')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Avatar */}
         <View style={styles.avatarSection}>

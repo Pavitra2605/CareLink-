@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Badge } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 export default function DigitalPrescriptionViewScreen({ navigation, route }) {
+  const { t } = useLanguage();
   const prescriptionDate = '15 Jan 2025';
   const doctor = route?.params?.doctor || {};
 
@@ -16,7 +18,7 @@ export default function DigitalPrescriptionViewScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Prescription" onBack={() => navigation.goBack()}
+      <Header title={t('telemedicine.digitalPrescription')} onBack={() => navigation.goBack()}
         rightAction={
           <TouchableOpacity onPress={() => {}}>
             <Ionicons name="share-social-outline" size={22} color={Colors.accent} />

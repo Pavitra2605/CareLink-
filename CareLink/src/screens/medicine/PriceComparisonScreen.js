@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Badge } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const comparisons = [
   { id: '1', pharmacy: 'Jan Aushadhi Kendra', type: 'Government', price: 18, distance: '1.2 km', available: true },
@@ -15,6 +16,8 @@ const comparisons = [
 const minPrice = Math.min(...comparisons.filter(c => c.available && c.price > 0).map(c => c.price));
 
 export default function PriceComparisonScreen({ navigation }) {
+  const { t } = useLanguage();
+
   const renderItem = ({ item }) => {
     const isCheapest = item.price === minPrice && item.available;
     return (
@@ -48,7 +51,7 @@ export default function PriceComparisonScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Price Comparison" onBack={() => navigation.goBack()}
+      <Header title={t('medicine.priceComparison')} onBack={() => navigation.goBack()}
         rightAction={{ icon: 'swap-vertical', onPress: () => {} }} />
       <View style={styles.summaryBar}>
         <Text style={styles.summaryText}>Paracetamol 500mg • Strip of 10</Text>

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Card } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const TIME_SLOTS = ['9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM', '4:00 PM'];
 const DATES = [
@@ -14,6 +15,7 @@ const DATES = [
 ];
 
 export default function AppointmentBookingScreen({ navigation, route }) {
+  const { t } = useLanguage();
   const doctor = route?.params?.doctor || {};
   const mode = route?.params?.mode || 'video';
   const [selectedDate, setSelectedDate] = useState(0);
@@ -21,7 +23,7 @@ export default function AppointmentBookingScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Book Appointment" onBack={() => navigation.goBack()} />
+      <Header title={t('telemedicine.bookAppointment')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <Card title="Doctor" variant="accent">
           <View style={styles.docRow}>

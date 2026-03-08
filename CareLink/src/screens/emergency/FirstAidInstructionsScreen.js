@@ -3,28 +3,30 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Badge } from '../../components/common';
-
-const steps = [
-  { title: 'Ensure Safety', desc: 'Make sure the area is safe for you and the patient. Remove any hazards.', icon: 'shield-checkmark' },
-  { title: 'Check Responsiveness', desc: 'Tap the person and shout. Ask "Are you okay?" Check for breathing.', icon: 'person' },
-  { title: 'Call for Help', desc: 'Call 108 (Ambulance) or ask someone nearby to call immediately.', icon: 'call' },
-  { title: 'Control Bleeding', desc: 'Apply direct pressure with a clean cloth. Elevate the injured area if possible.', icon: 'bandage' },
-  { title: 'Keep Patient Warm', desc: 'Cover with a blanket. Do not give food or water if unconscious.', icon: 'thermometer' },
-  { title: 'Monitor Breathing', desc: 'Keep checking breathing until help arrives. Be ready to perform CPR if trained.', icon: 'pulse' },
-];
+import { useLanguage } from '../../i18n';
 
 export default function FirstAidInstructionsScreen({ navigation, route }) {
   const type = route?.params?.type || 'General';
   const [currentStep, setCurrentStep] = useState(0);
+  const { t } = useLanguage();
+
+  const steps = [
+    { title: t('firstAid.ensureSafety'), desc: t('firstAid.ensureSafetyDesc'), icon: 'shield-checkmark' },
+    { title: t('firstAid.checkResponsiveness'), desc: t('firstAid.checkResponsivenessDesc'), icon: 'person' },
+    { title: t('firstAid.callForHelp'), desc: t('firstAid.callForHelpDesc'), icon: 'call' },
+    { title: t('firstAid.controlBleeding'), desc: t('firstAid.controlBleedingDesc'), icon: 'bandage' },
+    { title: t('firstAid.keepWarm'), desc: t('firstAid.keepWarmDesc'), icon: 'thermometer' },
+    { title: t('firstAid.monitorBreathing'), desc: t('firstAid.monitorBreathingDesc'), icon: 'pulse' },
+  ];
 
   return (
     <View style={styles.container}>
-      <Header title="First Aid Guide" onBack={() => navigation.goBack()} />
+      <Header title={t('firstAid.title')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Type Badge */}
         <View style={styles.typeRow}>
           <Badge label={type} variant="error" />
-          <Text style={styles.stepCounter}>Step {currentStep + 1} of {steps.length}</Text>
+          <Text style={styles.stepCounter}>{t('firstAid.stepOf', { current: currentStep + 1, total: steps.length })}</Text>
         </View>
 
         {/* Current Step Card */}
@@ -41,17 +43,17 @@ export default function FirstAidInstructionsScreen({ navigation, route }) {
           <TouchableOpacity style={[styles.navBtn, currentStep === 0 && styles.navBtnDisabled]}
             onPress={() => currentStep > 0 && setCurrentStep(currentStep - 1)}>
             <Ionicons name="arrow-back" size={20} color={currentStep === 0 ? Colors.textMuted : Colors.accent} />
-            <Text style={[styles.navText, currentStep === 0 && { color: Colors.textMuted }]}>Previous</Text>
+            <Text style={[styles.navText, currentStep === 0 && { color: Colors.textMuted }]}>{t('common.previous')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.navBtn, styles.navBtnNext]}
             onPress={() => currentStep < steps.length - 1 ? setCurrentStep(currentStep + 1) : navigation.navigate('NextSteps', { type })}>
-            <Text style={styles.navTextNext}>{currentStep < steps.length - 1 ? 'Next Step' : 'What\'s Next'}</Text>
+            <Text style={styles.navTextNext}>{currentStep < steps.length - 1 ? t('firstAid.nextStep') : t('firstAid.whatsNext')}</Text>
             <Ionicons name="arrow-forward" size={20} color={Colors.white} />
           </TouchableOpacity>
         </View>
 
         {/* All Steps Overview */}
-        <Text style={styles.sectionTitle}>All Steps</Text>
+        <Text style={styles.sectionTitle}>{t('firstAid.allSteps')}</Text>
         {steps.map((s, i) => (
           <TouchableOpacity key={i} style={[styles.stepListItem, i === currentStep && styles.stepListActive]}
             onPress={() => setCurrentStep(i)}>

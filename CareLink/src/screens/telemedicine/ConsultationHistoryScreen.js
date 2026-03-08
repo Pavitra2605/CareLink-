@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Badge, SearchBar } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const mockHistory = [
   { id: '1', doctor: 'Dr. Priya Sharma', specialty: 'General Physician', date: '15 Jan 2025', mode: 'video', status: 'completed', diagnosis: 'Tension Headache' },
@@ -15,6 +16,7 @@ const mockHistory = [
 const modeIcons = { video: 'videocam', audio: 'call', text: 'chatbubbles' };
 
 export default function ConsultationHistoryScreen({ navigation }) {
+  const { t } = useLanguage();
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
 
@@ -60,7 +62,7 @@ export default function ConsultationHistoryScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Consultation History" onBack={() => navigation.goBack()} />
+      <Header title={t('telemedicine.consultationHistory')} onBack={() => navigation.goBack()} />
       <View style={styles.searchWrap}>
         <SearchBar placeholder="Search doctor or diagnosis" value={search} onChangeText={setSearch} />
       </View>

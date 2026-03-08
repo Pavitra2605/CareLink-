@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Card } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const typeConfig = {
   appointment: { icon: 'calendar', color: Colors.accent, label: 'Appointment' },
@@ -14,6 +15,7 @@ const typeConfig = {
 };
 
 export default function NotificationDetailScreen({ navigation, route }) {
+  const { t } = useLanguage();
   const notification = route?.params?.notification || {
     type: 'appointment', title: 'Upcoming Appointment',
     body: 'Video consultation with Dr. Priya Sharma tomorrow at 10:00 AM',
@@ -23,7 +25,7 @@ export default function NotificationDetailScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Notification" onBack={() => navigation.goBack()} />
+      <Header title={t('notifications.detail')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={[styles.heroCard, Shadows.soft]}>
           <View style={[styles.iconCircle, { backgroundColor: cfg.color + '15' }]}>

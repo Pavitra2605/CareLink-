@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Button, Card } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 export default function WaitingRoomScreen({ navigation, route }) {
+  const { t } = useLanguage();
   const doctor = route?.params?.doctor || {};
   const mode = route?.params?.mode || 'video';
   const [position, setPosition] = useState(3);

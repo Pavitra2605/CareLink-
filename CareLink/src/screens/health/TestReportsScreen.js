@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, SearchBar, Badge, Button } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const mockReports = [
   { id: '1', name: 'Complete Blood Count', lab: 'Apollo Diagnostics', date: '12 Jan 2025', type: 'Blood', status: 'normal' },
@@ -16,6 +17,7 @@ const mockReports = [
 const statusVariant = { normal: 'success', abnormal: 'error', borderline: 'warning' };
 
 export default function TestReportsScreen({ navigation }) {
+  const { t } = useLanguage();
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
 
@@ -53,7 +55,7 @@ export default function TestReportsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Test Reports" onBack={() => navigation.goBack()} />
+      <Header title={t('health.testReports')} onBack={() => navigation.goBack()} />
       <View style={styles.searchWrap}>
         <SearchBar placeholder="Search reports..." value={search} onChangeText={setSearch} />
       </View>

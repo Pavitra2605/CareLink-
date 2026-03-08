@@ -4,28 +4,29 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Gradients, Shadows } from '../../theme';
 import { Header, Card } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 export default function AboutAppScreen({ navigation }) {
+  const { t } = useLanguage();
+
   return (
     <View style={styles.container}>
-      <Header title="About CareLink" onBack={() => navigation.goBack()} />
+      <Header title={t('about.title')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         <LinearGradient colors={Gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
-          <Text style={styles.logo}>CareLink</Text>
-          <Text style={styles.version}>Version 1.0.0</Text>
-          <Text style={styles.tagline}>Rural Healthcare Accessibility Platform</Text>
+          <Text style={styles.logo}>{t('about.logo')}</Text>
+          <Text style={styles.version}>{t('about.version')}</Text>
+          <Text style={styles.tagline}>{t('about.tagline')}</Text>
         </LinearGradient>
 
-        <Card title="About">
+        <Card title={t('about.aboutCardTitle')}>
           <Text style={styles.aboutText}>
-            CareLink is a comprehensive digital health platform designed to improve healthcare accessibility for rural communities. 
-            It connects patients with doctors through telemedicine, provides symptom assessment tools, tracks health records, 
-            and helps locate nearby pharmacies with medicine availability.
+            {t('about.description')}
           </Text>
         </Card>
 
-        <Card title="Features" style={{ marginTop: Spacing.md }}>
-          {['Telemedicine (Video/Audio/Text)', 'AI Symptom Checker', 'Digital Health Records', 'Medicine Finder', 'Emergency Services', 'Multi-language Support'].map((f, i) => (
+        <Card title={t('about.features')} style={{ marginTop: Spacing.md }}>
+          {[t('about.featureTelemedicine'), t('about.featureAI'), t('about.featureRecords'), t('about.featureMedicine'), t('about.featureEmergency'), t('about.featureLanguage')].map((f, i) => (
             <View key={i} style={styles.featureRow}>
               <Ionicons name="checkmark-circle" size={18} color={Colors.success} />
               <Text style={styles.featureText}>{f}</Text>
@@ -33,11 +34,11 @@ export default function AboutAppScreen({ navigation }) {
           ))}
         </Card>
 
-        <Card title="Legal" style={{ marginTop: Spacing.md }}>
+        <Card title={t('about.legal')} style={{ marginTop: Spacing.md }}>
           {[
-            { label: 'Terms of Service', icon: 'document-text' },
-            { label: 'Privacy Policy', icon: 'shield-checkmark' },
-            { label: 'Open Source Licenses', icon: 'code-slash' },
+            { label: t('about.termsOfService'), icon: 'document-text' },
+            { label: t('about.privacyPolicy'), icon: 'shield-checkmark' },
+            { label: t('about.licenses'), icon: 'code-slash' },
           ].map((item, i) => (
             <TouchableOpacity key={i} style={styles.legalRow}>
               <Ionicons name={item.icon} size={18} color={Colors.accent} />
@@ -47,8 +48,8 @@ export default function AboutAppScreen({ navigation }) {
           ))}
         </Card>
 
-        <Text style={styles.copyright}>© 2025 CareLink. All rights reserved.</Text>
-        <Text style={styles.madeWith}>Made with ❤️ for rural India</Text>
+        <Text style={styles.copyright}>{t('about.copyright')}</Text>
+        <Text style={styles.madeWith}>{t('about.madeWith')}</Text>
       </ScrollView>
     </View>
   );

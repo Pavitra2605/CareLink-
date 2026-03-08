@@ -4,44 +4,46 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Gradients } from '../../theme';
 import { Button } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const { width } = Dimensions.get('window');
-
-const SLIDES = [
-  {
-    id: '1',
-    icon: 'videocam',
-    color: Colors.accent,
-    title: 'Consult Doctors Anytime',
-    description: 'Connect with qualified doctors through video, audio, or text chat from the comfort of your home.',
-  },
-  {
-    id: '2',
-    icon: 'document-text',
-    color: Colors.success,
-    title: 'Digital Health Records',
-    description: 'Keep all your medical records, prescriptions, and reports in one secure, accessible place.',
-  },
-  {
-    id: '3',
-    icon: 'medkit',
-    color: Colors.error,
-    title: 'Emergency Guidance',
-    description: 'Get instant first-aid instructions and severity assessment for medical incidents.',
-  },
-  {
-    id: '4',
-    icon: 'medical',
-    color: Colors.amberMid,
-    title: 'Find Medicines Nearby',
-    description: 'Search real-time medicine availability at pharmacies near you with price comparison.',
-  },
-];
 
 export default function OnboardingScreen({ navigation }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef(null);
   const scrollX = useRef(new Animated.Value(0)).current;
+  const { t } = useLanguage();
+
+  const SLIDES = [
+    {
+      id: '1',
+      icon: 'videocam',
+      color: Colors.accent,
+      title: t('onboarding.slide1Title'),
+      description: t('onboarding.slide1Desc'),
+    },
+    {
+      id: '2',
+      icon: 'document-text',
+      color: Colors.success,
+      title: t('onboarding.slide2Title'),
+      description: t('onboarding.slide2Desc'),
+    },
+    {
+      id: '3',
+      icon: 'medkit',
+      color: Colors.error,
+      title: t('onboarding.slide3Title'),
+      description: t('onboarding.slide3Desc'),
+    },
+    {
+      id: '4',
+      icon: 'medical',
+      color: Colors.amberMid,
+      title: t('onboarding.slide4Title'),
+      description: t('onboarding.slide4Desc'),
+    },
+  ];
 
   const handleNext = () => {
     if (currentIndex < SLIDES.length - 1) {
@@ -103,7 +105,7 @@ export default function OnboardingScreen({ navigation }) {
 
       <View style={styles.footer}>
         <Button
-          title={currentIndex === SLIDES.length - 1 ? 'Get Started' : 'Next'}
+          title={currentIndex === SLIDES.length - 1 ? t('onboarding.getStarted') : t('common.next')}
           onPress={handleNext}
           size="lg"
           style={{ flex: 1 }}
@@ -112,7 +114,7 @@ export default function OnboardingScreen({ navigation }) {
 
       {currentIndex < SLIDES.length - 1 && (
         <Button
-          title="Skip"
+          title={t('onboarding.skip')}
           variant="outline"
           onPress={() => navigation.replace('Login')}
           size="sm"

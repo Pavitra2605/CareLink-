@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius } from '../../theme';
+import { useLanguage } from '../../i18n';
 
 const { width } = Dimensions.get('window');
 
 export default function ActiveVideoConsultScreen({ navigation, route }) {
+  const { t } = useLanguage();
   const doctor = route?.params?.doctor || {};
   const [muted, setMuted] = useState(false);
   const [cameraOff, setCameraOff] = useState(false);

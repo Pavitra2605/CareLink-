@@ -5,23 +5,25 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Gradients } from '../../theme';
 import { Button, Input } from '../../components/common';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../i18n';
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const { resetPassword } = useAuth();
+  const { t } = useLanguage();
 
   const handleResetPassword = async () => {
     if (!email) {
-      Alert.alert('Missing field', 'Please enter your email address.');
+      Alert.alert(t('auth.missingField'), t('auth.enterEmail'));
       return;
     }
     setLoading(true);
     const { error } = await resetPassword(email.trim());
     setLoading(false);
     if (error) {
-      Alert.alert('Error', error.message);
+      Alert.alert(t('common.error'), error.message);
     } else {
       setSent(true);
     }
@@ -32,11 +34,11 @@ export default function ForgotPasswordScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
           <Ionicons name="key-outline" size={48} color={Colors.accent} style={{ marginBottom: Spacing.base }} />
-          <Text style={styles.title}>{sent ? 'Email Sent!' : 'Forgot Password'}</Text>
+          <Text style={styles.title}>{sent ? t('auth.emailSent') : t('auth.forgotPasswordTitle')}</Text>
           <Text style={styles.subtitle}>
             {sent
-              ? `A password reset link has been sent to ${email}`
-              : 'Enter your email address to receive a reset link'}
+              ? `${t('auth.resetLinkSent')} ${email}`
+              : t('auth.enterEmailReset')}
           </Text>
         </View>
 
@@ -44,18 +46,18 @@ export default function ForgotPasswordScreen({ navigation }) {
           {!sent ? (
             <>
               <Input
-                label="Email"
-                placeholder="Enter your email address"
+                label={t('auth.email')}
+                placeholder={t('auth.emailPlaceholder')}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 icon={<Ionicons name="mail-outline" size={20} color={Colors.textMuted} />}
               />
-              <Button title="Send Reset Link" onPress={handleResetPassword} loading={loading} size="lg" />
+              <Button title={t('auth.sendResetLink')} onPress={handleResetPassword} loading={loading} size="lg" />
             </>
           ) : (
-            <Button title="Back to Login" onPress={() => navigation.navigate('Login')} size="lg" />
+            <Button title={t('auth.backToLogin')} onPress={() => navigation.navigate('Login')} size="lg" />
           )}
         </View>
       </ScrollView>

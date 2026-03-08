@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius } from '../../theme';
 import { Header, Button } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const filterSections = [
   {
@@ -25,12 +26,13 @@ const filterSections = [
 
 export default function PharmacyFilterScreen({ navigation }) {
   const [filters, setFilters] = useState({ type: 'All', distance: 'Any', avail: 'All', sort: 'Distance' });
+  const { t } = useLanguage();
 
   const setFilter = (key, val) => setFilters(prev => ({ ...prev, [key]: val }));
 
   return (
     <View style={styles.container}>
-      <Header title="Filter Pharmacies" onBack={() => navigation.goBack()} />
+      <Header title={t('medicine.pharmacyFilter')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         {filterSections.map(section => (
           <View key={section.key} style={styles.section}>

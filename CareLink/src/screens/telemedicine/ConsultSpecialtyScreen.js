@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList } from '
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, SearchBar } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const SPECIALTIES = [
   { id: '1', name: 'General Physician', icon: 'person', color: Colors.accent, doctors: 24 },
@@ -18,6 +19,7 @@ const SPECIALTIES = [
 ];
 
 export default function ConsultSpecialtyScreen({ navigation }) {
+  const { t } = useLanguage();
   const [search, setSearch] = React.useState('');
 
   const filtered = SPECIALTIES.filter((s) =>
@@ -26,7 +28,7 @@ export default function ConsultSpecialtyScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Consult a Doctor" onBack={() => navigation.goBack()} />
+      <Header title={t('telemedicine.consultSpecialty')} onBack={() => navigation.goBack()} />
       <View style={styles.content}>
         <SearchBar
           value={search}

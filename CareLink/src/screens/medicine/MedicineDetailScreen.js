@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Card, Badge } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const medicine = {
   name: 'Paracetamol 500mg',
@@ -21,9 +22,11 @@ const medicine = {
 };
 
 export default function MedicineDetailScreen({ navigation }) {
+  const { t } = useLanguage();
+
   return (
     <View style={styles.container}>
-      <Header title="Medicine Details" onBack={() => navigation.goBack()} />
+      <Header title={t('medicine.medicineDetail')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         {/* Hero */}
         <View style={[styles.heroCard, Shadows.soft]}>

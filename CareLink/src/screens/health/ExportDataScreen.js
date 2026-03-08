@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 export default function ExportDataScreen({ navigation }) {
+  const { t } = useLanguage();
   const [format, setFormat] = useState('pdf');
   const [sections, setSections] = useState(['profile', 'vitals', 'medications']);
 
@@ -30,7 +32,7 @@ export default function ExportDataScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Export Health Data" onBack={() => navigation.goBack()} />
+      <Header title={t('health.exportData')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Format Selection */}
         <Text style={styles.sectionTitle}>Export Format</Text>

@@ -3,26 +3,28 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header } from '../../components/common';
-
-const incidents = [
-  { label: 'Accident / Injury', icon: 'car', color: Colors.error, desc: 'Road accident, fall, or physical injury' },
-  { label: 'Chest Pain', icon: 'heart', color: '#E91E63', desc: 'Pain or tightness in the chest area' },
-  { label: 'Breathing Problem', icon: 'fitness', color: Colors.accent, desc: 'Difficulty breathing or shortness of breath' },
-  { label: 'Bleeding', icon: 'water', color: '#F44336', desc: 'Severe or uncontrolled bleeding' },
-  { label: 'Unconscious Person', icon: 'person', color: '#9C27B0', desc: 'Person not responding' },
-  { label: 'Fever / Infection', icon: 'thermometer', color: Colors.amberMid, desc: 'Very high fever with other symptoms' },
-  { label: 'Poisoning / Overdose', icon: 'flask', color: '#4CAF50', desc: 'Accidental or intentional poisoning' },
-  { label: 'Snake / Animal Bite', icon: 'bug', color: '#795548', desc: 'Bite from snake, dog, or insect' },
-  { label: 'Burn Injury', icon: 'flame', color: '#FF5722', desc: 'Burns from fire, chemicals, or hot liquids' },
-  { label: 'Pregnancy Emergency', icon: 'woman', color: '#E040FB', desc: 'Labor, bleeding, or complications' },
-];
+import { useLanguage } from '../../i18n';
 
 export default function IncidentSelectScreen({ navigation }) {
+  const { t } = useLanguage();
+
+  const incidents = [
+    { label: t('incident.accidentInjury'), icon: 'car', color: Colors.error, desc: t('incident.accidentDesc') },
+    { label: t('incident.chestPain'), icon: 'heart', color: '#E91E63', desc: t('incident.chestPainDesc') },
+    { label: t('incident.breathingProblem'), icon: 'fitness', color: Colors.accent, desc: t('incident.breathingDesc') },
+    { label: t('incident.bleeding'), icon: 'water', color: '#F44336', desc: t('incident.bleedingDesc') },
+    { label: t('incident.unconscious'), icon: 'person', color: '#9C27B0', desc: t('incident.unconsciousDesc') },
+    { label: t('incident.feverInfection'), icon: 'thermometer', color: Colors.amberMid, desc: t('incident.feverDesc') },
+    { label: t('incident.poisoningOverdose'), icon: 'flask', color: '#4CAF50', desc: t('incident.poisoningDesc') },
+    { label: t('incident.animalBite'), icon: 'bug', color: '#795548', desc: t('incident.animalBiteDesc') },
+    { label: t('incident.burnInjury'), icon: 'flame', color: '#FF5722', desc: t('incident.burnDesc') },
+    { label: t('incident.pregnancyEmergency'), icon: 'woman', color: '#E040FB', desc: t('incident.pregnancyDesc') },
+  ];
   return (
     <View style={styles.container}>
-      <Header title="Select Emergency Type" onBack={() => navigation.goBack()} />
+      <Header title={t('incident.selectType')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.subtitle}>Select the type of emergency for guided assistance</Text>
+        <Text style={styles.subtitle}>{t('incident.subtitle')}</Text>
         {incidents.map((item, i) => (
           <TouchableOpacity key={i} style={[styles.card, Shadows.soft]}
             onPress={() => navigation.navigate('SymptomQuestionnaire', { type: item.label })}>

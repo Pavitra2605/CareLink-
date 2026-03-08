@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const commonSymptoms = [
   'Fever', 'Headache', 'Cough', 'Sore throat', 'Body aches',
@@ -13,6 +14,7 @@ const commonSymptoms = [
 const durations = ['Today', '2-3 days', '1 week', '2+ weeks', 'Ongoing'];
 
 export default function SymptomInputScreen({ navigation, route }) {
+  const { t } = useLanguage();
   const [text, setText] = useState('');
   const [selected, setSelected] = useState([]);
   const [duration, setDuration] = useState(null);
@@ -25,7 +27,7 @@ export default function SymptomInputScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Describe Symptoms" onBack={() => navigation.goBack()} />
+      <Header title={t('symptomChecker.symptomInput')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         {/* Free text */}
         <Text style={styles.sectionLabel}>Describe what you're feeling</Text>

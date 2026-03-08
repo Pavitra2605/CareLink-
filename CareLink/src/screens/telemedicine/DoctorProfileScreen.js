@@ -3,13 +3,15 @@ import { View, Text, StyleSheet, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Badge, Card } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 export default function DoctorProfileScreen({ navigation, route }) {
+  const { t } = useLanguage();
   const doctor = route?.params?.doctor || { name: 'Dr. Priya Sharma', specialty: 'General Physician', rating: '4.8', available: true, languages: 'Tamil, English' };
 
   return (
     <View style={styles.container}>
-      <Header title="Doctor Profile" onBack={() => navigation.goBack()} />
+      <Header title={t('telemedicine.doctorProfile')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={[styles.profileCard, Shadows.soft]}>
           <View style={styles.avatarWrap}>

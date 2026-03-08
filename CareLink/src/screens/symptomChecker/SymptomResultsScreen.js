@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Card, Badge } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const results = [
   { id: 1, name: 'Viral Fever', match: 85, severity: 'Moderate', icon: 'thermometer' },
@@ -17,9 +18,10 @@ const sevConfig = {
 };
 
 export default function SymptomResultsScreen({ navigation }) {
+  const { t } = useLanguage();
   return (
     <View style={styles.container}>
-      <Header title="Assessment Results" onBack={() => navigation.goBack()} />
+      <Header title={t('symptomChecker.results')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         {/* Disclaimer */}
         <View style={styles.disclaimer}>

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Badge } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const CHART_W = SCREEN_W - 64;
@@ -38,6 +39,7 @@ function SimpleChart({ data, color, height = CHART_H }) {
 }
 
 export default function TrendAnalysisScreen({ navigation }) {
+  const { t } = useLanguage();
   const [selected, setSelected] = useState('bp');
   const [period, setPeriod] = useState('week');
 
@@ -46,7 +48,7 @@ export default function TrendAnalysisScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Trend Analysis" onBack={() => navigation.goBack()} />
+      <Header title={t('health.trendAnalysis')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Metric Tabs */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabRow}>

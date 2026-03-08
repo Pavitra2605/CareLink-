@@ -3,37 +3,39 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Card } from '../../components/common';
-
-const reminderOptions = [
-  { id: '1h', label: '1 Hour' },
-  { id: '4h', label: '4 Hours' },
-  { id: '1d', label: 'Tomorrow' },
-  { id: '3d', label: '3 Days' },
-  { id: '1w', label: '1 Week' },
-];
+import { useLanguage } from '../../i18n';
 
 export default function FollowupReminderScreen({ navigation }) {
   const [selected, setSelected] = useState('1d');
+  const { t } = useLanguage();
+
+  const reminderOptions = [
+    { id: '1h', label: t('followup.oneHour') },
+    { id: '4h', label: t('followup.fourHours') },
+    { id: '1d', label: t('followup.tomorrow') },
+    { id: '3d', label: t('followup.threeDays') },
+    { id: '1w', label: t('followup.oneWeek') },
+  ];
 
   const handleSet = () => {
     const label = reminderOptions.find(o => o.id === selected)?.label;
-    Alert.alert('Reminder Set', `You will be reminded in ${label} to follow up after this emergency.`);
+    Alert.alert(t('followup.reminderSet'), t('followup.reminderMessage', { time: label }));
     navigation.popToTop?.();
   };
 
   return (
     <View style={styles.container}>
-      <Header title="Follow-Up Reminder" onBack={() => navigation.goBack()} />
+      <Header title={t('followup.title')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.iconWrap}>
           <Ionicons name="alarm" size={56} color={Colors.accent} />
         </View>
-        <Text style={styles.title}>Set a Follow-Up Reminder</Text>
+        <Text style={styles.title}>{t('followup.setReminder')}</Text>
         <Text style={styles.subtitle}>
-          After an emergency, it's important to follow up with a healthcare provider. We'll remind you.
+          {t('followup.subtitle')}
         </Text>
 
-        <Card title="Remind Me In" style={{ marginTop: Spacing.lg }}>
+        <Card title={t('followup.remindIn')} style={{ marginTop: Spacing.lg }}>
           {reminderOptions.map(opt => (
             <TouchableOpacity key={opt.id} style={[styles.optionRow, selected === opt.id && styles.optionSelected]}
               onPress={() => setSelected(opt.id)}>
@@ -44,8 +46,8 @@ export default function FollowupReminderScreen({ navigation }) {
           ))}
         </Card>
 
-        <Card title="What to Follow Up" style={{ marginTop: Spacing.md }}>
-          {['Visit a doctor or hospital', 'Complete prescribed medication', 'Upload medical documents'].map((item, i) => (
+        <Card title={t('followup.whatToFollowUp')} style={{ marginTop: Spacing.md }}>
+          {[t('followup.visitDoctor'), t('followup.completeMedication'), t('followup.uploadDocuments')].map((item, i) => (
             <View key={i} style={styles.checkItem}>
               <Ionicons name="checkmark-circle" size={20} color={Colors.success} />
               <Text style={styles.checkText}>{item}</Text>
@@ -53,9 +55,9 @@ export default function FollowupReminderScreen({ navigation }) {
           ))}
         </Card>
 
-        <Button label="Set Reminder" onPress={handleSet} style={{ marginTop: Spacing.xl }} />
+        <Button label={t('followup.setReminder')} onPress={handleSet} style={{ marginTop: Spacing.xl }} />
         <TouchableOpacity style={styles.skipBtn} onPress={() => navigation.popToTop?.()}>
-          <Text style={styles.skipText}>Skip for now</Text>
+          <Text style={styles.skipText}>{t('followup.skipForNow')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

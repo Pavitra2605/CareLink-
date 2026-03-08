@@ -2,10 +2,12 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, FontSizes, FontWeights, Gradients } from '../../theme';
+import { useLanguage } from '../../i18n';
 
 export default function SplashScreen({ navigation }) {
   const fadeAnim = new Animated.Value(0);
   const scaleAnim = new Animated.Value(0.8);
+  const { t } = useLanguage();
 
   useEffect(() => {
     Animated.parallel([
@@ -25,10 +27,10 @@ export default function SplashScreen({ navigation }) {
         <View style={styles.logoCircle}>
           <Text style={styles.logoIcon}>💙</Text>
         </View>
-        <Text style={styles.appName}>CareLink</Text>
-        <Text style={styles.tagline}>Healthcare for Everyone</Text>
+        <Text style={styles.appName}>{t('common.appName')}</Text>
+        <Text style={styles.tagline}>{t('splash.tagline')}</Text>
       </Animated.View>
-      <Animated.Text style={[styles.version, { opacity: fadeAnim }]}>v1.0.0</Animated.Text>
+      <Animated.Text style={[styles.version, { opacity: fadeAnim }]}>{t('common.version')}</Animated.Text>
     </LinearGradient>
   );
 }

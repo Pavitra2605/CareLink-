@@ -3,16 +3,19 @@ import { View, Text, StyleSheet, ScrollView, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Card } from '../../components/common';
-
-const prefs = [
-  { key: 'push', label: 'Push Notifications', desc: 'Receive alerts on your device', icon: 'notifications' },
-  { key: 'sms', label: 'SMS Alerts', desc: 'Important alerts via text message', icon: 'chatbubble' },
-  { key: 'email', label: 'Email Notifications', desc: 'Summary and reports via email', icon: 'mail' },
-  { key: 'sound', label: 'Sound', desc: 'Play sound for notifications', icon: 'volume-high' },
-  { key: 'vibrate', label: 'Vibration', desc: 'Vibrate on notification', icon: 'phone-portrait' },
-];
+import { useLanguage } from '../../i18n';
 
 export default function NotificationPrefsScreen({ navigation }) {
+  const { t } = useLanguage();
+
+  const prefs = [
+    { key: 'push', label: t('notificationPrefs.pushNotifications'), desc: t('notificationPrefs.pushDesc'), icon: 'notifications' },
+    { key: 'sms', label: t('notificationPrefs.smsAlerts'), desc: t('notificationPrefs.smsDesc'), icon: 'chatbubble' },
+    { key: 'email', label: t('notificationPrefs.emailNotifications'), desc: t('notificationPrefs.emailDesc'), icon: 'mail' },
+    { key: 'sound', label: t('notificationPrefs.sound'), desc: t('notificationPrefs.soundDesc'), icon: 'volume-high' },
+    { key: 'vibrate', label: t('notificationPrefs.vibration'), desc: t('notificationPrefs.vibrateDesc'), icon: 'phone-portrait' },
+  ];
+
   const [settings, setSettings] = useState({
     push: true, sms: true, email: false, sound: true, vibrate: true,
   });
@@ -21,9 +24,9 @@ export default function NotificationPrefsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Notification Preferences" onBack={() => navigation.goBack()} />
+      <Header title={t('notificationPrefs.title')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
-        <Card title="Channels">
+        <Card title={t('notificationPrefs.channels')}>
           {prefs.map((p, i) => (
             <View key={p.key} style={[styles.row, i < prefs.length - 1 && styles.rowBorder]}>
               <View style={[styles.icon, { backgroundColor: Colors.accent + '10' }]}>

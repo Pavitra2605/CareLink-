@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../i18n';
 
 const SUGGESTED = [
   'What are symptoms of diabetes?',
@@ -23,6 +24,7 @@ let _msgId = 1;
 const makeMsg = (role, text) => ({ id: String(_msgId++), role, text, ts: new Date() });
 
 export default function AIChatScreen({ navigation }) {
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
   const [messages, setMessages] = useState([
@@ -88,7 +90,7 @@ export default function AIChatScreen({ navigation }) {
             <Ionicons name="sparkles" size={16} color="#fff" />
           </View>
           <View>
-            <Text style={styles.headerTitle}>AI Health Assistant</Text>
+            <Text style={styles.headerTitle}>{t('ai.aiChat')}</Text>
             <Text style={styles.headerStatus}>● Online</Text>
           </View>
         </View>

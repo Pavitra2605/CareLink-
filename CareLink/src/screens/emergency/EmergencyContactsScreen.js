@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Linking, Alert } fr
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const initialContacts = [
   { id: '1', name: 'Meena Devi', relation: 'Mother', phone: '+91 98765 43210', primary: true },
@@ -12,13 +13,14 @@ const initialContacts = [
 
 export default function EmergencyContactsScreen({ navigation }) {
   const [contacts] = useState(initialContacts);
+  const { t } = useLanguage();
 
   const handleCall = (phone) => {
     Linking.openURL(`tel:${phone.replace(/\s/g, '')}`);
   };
 
   const handleSOS = () => {
-    Alert.alert('SOS Sent', 'Emergency alert sent to all contacts with your location.');
+    Alert.alert(t('emergencyContacts.sosSent'), t('emergencyContacts.sosMessage'));
   };
 
   const renderContact = ({ item }) => (
@@ -31,7 +33,7 @@ export default function EmergencyContactsScreen({ navigation }) {
           <Text style={styles.contactName}>{item.name}</Text>
           {item.primary && (
             <View style={styles.primaryBadge}>
-              <Text style={styles.primaryText}>Primary</Text>
+              <Text style={styles.primaryText}>{t('emergencyContacts.primary')}</Text>
             </View>
           )}
         </View>
@@ -51,11 +53,11 @@ export default function EmergencyContactsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Emergency Contacts" onBack={() => navigation.goBack()} />
+      <Header title={t('emergencyContacts.title')} onBack={() => navigation.goBack()} />
       {/* SOS All */}
       <TouchableOpacity style={styles.sosBar} onPress={handleSOS}>
         <Ionicons name="alert-circle" size={24} color={Colors.white} />
-        <Text style={styles.sosText}>Alert All Contacts with Location</Text>
+        <Text style={styles.sosText}>{t('emergencyContacts.alertAll')}</Text>
         <Ionicons name="chevron-forward" size={20} color={Colors.white} />
       </TouchableOpacity>
 
@@ -63,12 +65,11 @@ export default function EmergencyContactsScreen({ navigation }) {
         contentContainerStyle={styles.list}
         ListFooterComponent={
           <View style={{ paddingTop: Spacing.md }}>
-            <Button label="+ Add Contact" variant="outline" onPress={() => {}} />
+            <Button label={t('emergencyContacts.addContact')} variant="outline" onPress={() => {}} />
             <View style={styles.infoCard}>
               <Ionicons name="information-circle" size={20} color={Colors.accent} />
               <Text style={styles.infoText}>
-                Emergency contacts will be notified with your location when you trigger SOS. 
-                Keep at least 2 contacts updated.
+                {t('emergencyContacts.infoText')}
               </Text>
             </View>
           </View>

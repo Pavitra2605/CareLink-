@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button, Card } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const actions = [
   {
@@ -28,9 +29,10 @@ const otcMeds = [
 ];
 
 export default function RecommendedActionScreen({ navigation }) {
+  const { t } = useLanguage();
   return (
     <View style={styles.container}>
-      <Header title="Recommended Actions" onBack={() => navigation.goBack()} />
+      <Header title={t('symptomChecker.recommendedAction')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         {actions.map((a, i) => (
           <View key={i} style={[styles.actionCard, Shadows.soft]}>

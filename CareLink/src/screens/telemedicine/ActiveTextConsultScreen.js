@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, FontSizes, FontWeights, Spacing, Radius } from '../../theme';
 import { Header } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const INITIAL_MESSAGES = [
   { id: '1', text: 'Hello! How can I help you today?', sender: 'doctor', time: '10:00 AM' },
@@ -12,6 +13,7 @@ const INITIAL_MESSAGES = [
 ];
 
 export default function ActiveTextConsultScreen({ navigation, route }) {
+  const { t } = useLanguage();
   const doctor = route?.params?.doctor || {};
   const insets = useSafeAreaInsets();
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
@@ -46,8 +48,8 @@ export default function ActiveTextConsultScreen({ navigation, route }) {
   return (
     <View style={styles.container}>
       <Header
-        title={doctor.name || 'Dr. Priya Sharma'}
-        subtitle="Text Consultation"
+        title={t('telemedicine.textConsult')}
+        subtitle={doctor.name || 'Dr. Priya Sharma'}
         onBack={() => navigation.goBack()}
         rightAction={
           <TouchableOpacity onPress={() => navigation.navigate('PostConsultSummary', { doctor })}>

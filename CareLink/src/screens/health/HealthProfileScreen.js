@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Card, Badge, Button } from '../../components/common';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from '../../i18n';
 
 const vitalCards = [
   { label: 'Blood Pressure', value: '120/80', unit: 'mmHg', icon: 'heart', color: Colors.error, status: 'Normal' },
@@ -22,6 +23,7 @@ const quickLinks = [
 ];
 
 export default function HealthProfileScreen({ navigation }) {
+  const { t } = useLanguage();
   const { profile } = useAuth();
 
   const displayName   = profile?.full_name   || 'My Profile';
@@ -32,7 +34,7 @@ export default function HealthProfileScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Health Records" rightAction={
+      <Header title={t('health.title')} rightAction={
         <TouchableOpacity onPress={() => navigation.navigate('EditProfile')}>
           <Ionicons name="create-outline" size={22} color={Colors.accent} />
         </TouchableOpacity>

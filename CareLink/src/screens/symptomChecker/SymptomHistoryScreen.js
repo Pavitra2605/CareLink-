@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Badge, SearchBar } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const history = [
   { id: '1', date: '2025-01-15', symptoms: ['Fever', 'Headache', 'Body aches'], result: 'Viral Fever', severity: 'Moderate', match: 85 },
@@ -12,6 +13,7 @@ const history = [
 ];
 
 export default function SymptomHistoryScreen({ navigation }) {
+  const { t } = useLanguage();
   const [search, setSearch] = useState('');
   const filtered = history.filter(h =>
     h.result.toLowerCase().includes(search.toLowerCase()) ||
@@ -38,7 +40,7 @@ export default function SymptomHistoryScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Symptom History" onBack={() => navigation.goBack()} />
+      <Header title={t('symptomChecker.history')} onBack={() => navigation.goBack()} />
       <View style={{ paddingHorizontal: Spacing.base, paddingTop: Spacing.md }}>
         <SearchBar value={search} onChangeText={setSearch} placeholder="Search history..." />
       </View>

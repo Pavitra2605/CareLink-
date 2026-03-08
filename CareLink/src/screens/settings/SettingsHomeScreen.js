@@ -4,36 +4,38 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header } from '../../components/common';
 import { useAuth } from '../../context/AuthContext';
-
-const sections = [
-  {
-    title: 'Account',
-    items: [
-      { icon: 'person-circle', label: 'Profile Settings', screen: 'ProfileSettings', color: Colors.accent },
-      { icon: 'language', label: 'Language', screen: 'LanguageSettings', color: '#3498DB' },
-      { icon: 'notifications', label: 'Notifications', screen: 'NotificationPrefs', color: Colors.amberMid },
-    ],
-  },
-  {
-    title: 'Privacy & Security',
-    items: [
-      { icon: 'shield-checkmark', label: 'Privacy Settings', screen: 'PrivacySettings', color: Colors.success },
-      { icon: 'lock-closed', label: 'Change Password', screen: null, color: '#9B59B6' },
-      { icon: 'finger-print', label: 'Biometric Lock', screen: null, color: '#E67E22' },
-    ],
-  },
-  {
-    title: 'Support',
-    items: [
-      { icon: 'help-circle', label: 'Help & Support', screen: 'HelpSupport', color: Colors.accent },
-      { icon: 'information-circle', label: 'About CareLink', screen: 'AboutApp', color: '#2ECC71' },
-      { icon: 'chatbubble-ellipses', label: 'Send Feedback', screen: 'Feedback', color: '#E74C3C' },
-    ],
-  },
-];
+import { useLanguage } from '../../i18n';
 
 export default function SettingsHomeScreen({ navigation }) {
   const { signOut, profile, user } = useAuth();
+  const { t } = useLanguage();
+
+  const sections = [
+    {
+      title: t('settings.account'),
+      items: [
+        { icon: 'person-circle', label: t('settings.profileSettings'), screen: 'ProfileSettings', color: Colors.accent },
+        { icon: 'language', label: t('settings.language'), screen: 'LanguageSettings', color: '#3498DB' },
+        { icon: 'notifications', label: t('settings.notificationsLabel'), screen: 'NotificationPrefs', color: Colors.amberMid },
+      ],
+    },
+    {
+      title: t('settings.privacySecurity'),
+      items: [
+        { icon: 'shield-checkmark', label: t('settings.privacySettings'), screen: 'PrivacySettings', color: Colors.success },
+        { icon: 'lock-closed', label: t('settings.changePassword'), screen: null, color: '#9B59B6' },
+        { icon: 'finger-print', label: t('settings.biometricLock'), screen: null, color: '#E67E22' },
+      ],
+    },
+    {
+      title: t('settings.support'),
+      items: [
+        { icon: 'help-circle', label: t('settings.helpSupport'), screen: 'HelpSupport', color: Colors.accent },
+        { icon: 'information-circle', label: t('settings.aboutCareLink'), screen: 'AboutApp', color: '#2ECC71' },
+        { icon: 'chatbubble-ellipses', label: t('settings.sendFeedback'), screen: 'Feedback', color: '#E74C3C' },
+      ],
+    },
+  ];
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'My Account';
   const initials = displayName
@@ -45,15 +47,15 @@ export default function SettingsHomeScreen({ navigation }) {
   const displaySub = profile?.phone || user?.email || '';
 
   const handleSignOut = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: () => signOut() },
+    Alert.alert(t('settings.signOut'), t('settings.signOutConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('settings.signOut'), style: 'destructive', onPress: () => signOut() },
     ]);
   };
 
   return (
     <View style={styles.container}>
-      <Header title="Settings" onBack={() => navigation.goBack()} />
+      <Header title={t('settings.title')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         {/* Profile preview */}
         <TouchableOpacity style={[styles.profileCard, Shadows.soft]}
@@ -89,10 +91,10 @@ export default function SettingsHomeScreen({ navigation }) {
 
         <TouchableOpacity style={styles.logoutBtn} onPress={handleSignOut}>
           <Ionicons name="log-out" size={20} color={Colors.error} />
-          <Text style={styles.logoutText}>Sign Out</Text>
+          <Text style={styles.logoutText}>{t('settings.signOut')}</Text>
         </TouchableOpacity>
 
-        <Text style={styles.version}>CareLink v1.0.0</Text>
+        <Text style={styles.version}>{t('settings.appVersion')}</Text>
       </ScrollView>
     </View>
   );

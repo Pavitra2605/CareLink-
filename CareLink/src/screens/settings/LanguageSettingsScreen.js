@@ -3,25 +3,23 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button } from '../../components/common';
-
-const languages = [
-  { code: 'en', name: 'English', native: 'English' },
-  { code: 'ta', name: 'Tamil', native: 'தமிழ்' },
-  { code: 'hi', name: 'Hindi', native: 'हिन्दी' },
-  { code: 'te', name: 'Telugu', native: 'తెలుగు' },
-  { code: 'kn', name: 'Kannada', native: 'ಕನ್ನಡ' },
-  { code: 'ml', name: 'Malayalam', native: 'മലയാളം' },
-];
+import { useLanguage, SUPPORTED_LANGUAGES } from '../../i18n';
 
 export default function LanguageSettingsScreen({ navigation }) {
-  const [selected, setSelected] = useState('en');
+  const { locale, setLocale, t } = useLanguage();
+  const [selected, setSelected] = useState(locale);
+
+  const handleApply = async () => {
+    await setLocale(selected);
+    navigation.goBack();
+  };
 
   return (
     <View style={styles.container}>
-      <Header title="Language" onBack={() => navigation.goBack()} />
+      <Header title={t('languageSettings.title')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.info}>Select your preferred language. The app interface will update accordingly.</Text>
-        {languages.map(lang => (
+        <Text style={styles.info}>{t('languageSettings.info')}</Text>
+        {SUPPORTED_LANGUAGES.map(lang => (
           <TouchableOpacity key={lang.code}
             style={[styles.langCard, selected === lang.code && styles.langActive, Shadows.soft]}
             onPress={() => setSelected(lang.code)} activeOpacity={0.7}>
@@ -34,7 +32,7 @@ export default function LanguageSettingsScreen({ navigation }) {
             {selected === lang.code && <Ionicons name="checkmark-circle" size={22} color={Colors.accent} />}
           </TouchableOpacity>
         ))}
-        <Button label="Apply Language" onPress={() => navigation.goBack()} style={{ marginTop: Spacing.xl }} />
+        <Button label={t('languageSettings.applyLanguage')} onPress={handleApply} style={{ marginTop: Spacing.xl }} />
       </ScrollView>
     </View>
   );

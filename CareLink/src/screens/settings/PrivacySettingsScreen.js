@@ -3,16 +3,19 @@ import { View, Text, StyleSheet, ScrollView, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Card, Button } from '../../components/common';
-
-const dataItems = [
-  { key: 'location', label: 'Location Access', desc: 'Required for nearest hospital/pharmacy', icon: 'location' },
-  { key: 'camera', label: 'Camera Access', desc: 'For prescriptions and video consultations', icon: 'camera' },
-  { key: 'analytics', label: 'Usage Analytics', desc: 'Help improve the app experience', icon: 'analytics' },
-  { key: 'sharing', label: 'Data Sharing with Doctors', desc: 'Share health records during consultations', icon: 'people' },
-  { key: 'crashReport', label: 'Crash Reports', desc: 'Automatically send crash reports', icon: 'bug' },
-];
+import { useLanguage } from '../../i18n';
 
 export default function PrivacySettingsScreen({ navigation }) {
+  const { t } = useLanguage();
+
+  const dataItems = [
+    { key: 'location', label: t('privacy.locationAccess'), desc: t('privacy.locationDesc'), icon: 'location' },
+    { key: 'camera', label: t('privacy.cameraAccess'), desc: t('privacy.cameraDesc'), icon: 'camera' },
+    { key: 'analytics', label: t('privacy.analytics'), desc: t('privacy.analyticsDesc'), icon: 'analytics' },
+    { key: 'sharing', label: t('privacy.dataSharing'), desc: t('privacy.dataSharingDesc'), icon: 'people' },
+    { key: 'crashReport', label: t('privacy.crashReports'), desc: t('privacy.crashReportsDesc'), icon: 'bug' },
+  ];
+
   const [settings, setSettings] = useState({
     location: true, camera: true, analytics: true, sharing: true, crashReport: false,
   });
@@ -21,16 +24,16 @@ export default function PrivacySettingsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Privacy Settings" onBack={() => navigation.goBack()} />
+      <Header title={t('privacy.title')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.infoBox}>
           <Ionicons name="shield-checkmark" size={24} color={Colors.success} />
           <Text style={styles.infoText}>
-            Your data is encrypted end-to-end and stored securely. You control what data is shared.
+            {t('privacy.infoText')}
           </Text>
         </View>
 
-        <Card title="Permissions & Data">
+        <Card title={t('privacy.permissionsData')}>
           {dataItems.map((item, i) => (
             <View key={item.key} style={[styles.row, i < dataItems.length - 1 && styles.rowBorder]}>
               <View style={[styles.icon, { backgroundColor: Colors.accent + '10' }]}>
@@ -47,9 +50,9 @@ export default function PrivacySettingsScreen({ navigation }) {
           ))}
         </Card>
 
-        <Card title="Data Management" style={{ marginTop: Spacing.md }}>
-          <Button label="Download My Data" variant="outline" onPress={() => {}} style={{ marginBottom: Spacing.sm }} />
-          <Button label="Delete My Account" variant="danger" onPress={() => {}} />
+        <Card title={t('privacy.dataManagement')} style={{ marginTop: Spacing.md }}>
+          <Button label={t('privacy.downloadMyData')} variant="outline" onPress={() => {}} style={{ marginBottom: Spacing.sm }} />
+          <Button label={t('privacy.deleteMyAccount')} variant="danger" onPress={() => {}} />
         </Card>
       </ScrollView>
     </View>

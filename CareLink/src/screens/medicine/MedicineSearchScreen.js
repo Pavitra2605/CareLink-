@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity } from '
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, SearchBar } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const recentSearches = ['Paracetamol', 'Amoxicillin', 'Metformin', 'Omeprazole'];
 const categories = [
@@ -25,10 +26,11 @@ const popularMeds = [
 
 export default function MedicineSearchScreen({ navigation }) {
   const [search, setSearch] = useState('');
+  const { t } = useLanguage();
 
   return (
     <View style={styles.container}>
-      <Header title="Medicine Search" onBack={() => navigation.goBack()} />
+      <Header title={t('medicine.searchMedicine')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
         <SearchBar value={search} onChangeText={setSearch} placeholder="Search medicine name or salt..."
           showFilter onFilter={() => {}} />

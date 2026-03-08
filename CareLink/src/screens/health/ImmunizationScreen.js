@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Card, Badge } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const vaccines = [
   { name: 'COVID-19 (Covishield)', date: '15 Mar 2021', dose: 'Dose 1', status: 'done' },
@@ -14,9 +15,10 @@ const vaccines = [
 ];
 
 export default function ImmunizationScreen({ navigation }) {
+  const { t } = useLanguage();
   return (
     <View style={styles.container}>
-      <Header title="Immunization Records" onBack={() => navigation.goBack()} />
+      <Header title={t('health.immunization')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Summary */}
         <View style={[styles.summaryRow, Shadows.soft]}>

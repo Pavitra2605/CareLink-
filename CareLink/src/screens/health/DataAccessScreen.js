@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Switch, TouchableOpacity } from 're
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Badge } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const accessList = [
   { name: 'Dr. Priya Sharma', role: 'General Physician', access: 'full', since: 'Jan 2024' },
@@ -14,12 +15,13 @@ const accessList = [
 const accessVariant = { full: 'success', limited: 'info', emergency: 'error', reports: 'warning' };
 
 export default function DataAccessScreen({ navigation }) {
+  const { t } = useLanguage();
   const [sharing, setSharing] = useState(true);
   const [anonymous, setAnonymous] = useState(false);
 
   return (
     <View style={styles.container}>
-      <Header title="Data Access & Privacy" onBack={() => navigation.goBack()} />
+      <Header title={t('health.dataAccess')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Master Toggle */}
         <View style={[styles.toggleCard, Shadows.soft]}>

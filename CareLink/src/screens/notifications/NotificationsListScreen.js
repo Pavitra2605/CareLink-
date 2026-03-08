@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Badge } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const notifications = [
   { id: '1', type: 'appointment', title: 'Upcoming Appointment', body: 'Video consultation with Dr. Priya Sharma tomorrow at 10:00 AM', time: '2 hours ago', read: false },
@@ -25,6 +26,7 @@ const typeConfig = {
 const filters = ['All', 'Unread', 'Appointments', 'Medications', 'Reports'];
 
 export default function NotificationsListScreen({ navigation }) {
+  const { t } = useLanguage();
   const [activeFilter, setActiveFilter] = useState('All');
 
   const filtered = notifications.filter(n => {
@@ -57,7 +59,7 @@ export default function NotificationsListScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Header title="Notifications" onBack={() => navigation.goBack()}
+      <Header title={t('notifications.title')} onBack={() => navigation.goBack()}
         rightAction={{ icon: 'settings-outline', onPress: () => navigation.navigate('NotificationSettings') }} />
       <View style={styles.filterRow}>
         {filters.map(f => (

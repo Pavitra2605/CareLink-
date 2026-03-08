@@ -3,31 +3,31 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert 
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Button } from '../../components/common';
-
-const feedbackTypes = [
-  { key: 'bug', label: 'Bug Report', icon: 'bug' },
-  { key: 'feature', label: 'Feature Request', icon: 'bulb' },
-  { key: 'general', label: 'General Feedback', icon: 'chatbubble' },
-  { key: 'complaint', label: 'Complaint', icon: 'alert-circle' },
-];
-
-const ratings = [1, 2, 3, 4, 5];
+import { useLanguage } from '../../i18n';
 
 export default function FeedbackScreen({ navigation }) {
   const [type, setType] = useState('general');
   const [rating, setRating] = useState(0);
   const [feedback, setFeedback] = useState('');
+  const { t } = useLanguage();
+
+  const feedbackTypes = [
+    { key: 'bug', label: t('feedback.bugReport'), icon: 'bug' },
+    { key: 'feature', label: t('feedback.featureRequest'), icon: 'bulb' },
+    { key: 'general', label: t('feedback.generalFeedback'), icon: 'chatbubble' },
+    { key: 'complaint', label: t('feedback.complaint'), icon: 'alert-circle' },
+  ];
 
   const handleSubmit = () => {
-    Alert.alert('Thank You!', 'Your feedback has been submitted. We appreciate your input.');
+    Alert.alert(t('feedback.thankYou'), t('feedback.feedbackReceived'));
     navigation.goBack();
   };
 
   return (
     <View style={styles.container}>
-      <Header title="Send Feedback" onBack={() => navigation.goBack()} />
+      <Header title={t('feedback.title')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.sectionLabel}>Feedback Type</Text>
+        <Text style={styles.sectionLabel}>{t('feedback.selectType')}</Text>
         <View style={styles.typeGrid}>
           {feedbackTypes.map(t => (
             <TouchableOpacity key={t.key}
@@ -40,9 +40,9 @@ export default function FeedbackScreen({ navigation }) {
           ))}
         </View>
 
-        <Text style={styles.sectionLabel}>Rate Your Experience</Text>
+        <Text style={styles.sectionLabel}>{t('feedback.rateExperience')}</Text>
         <View style={styles.starRow}>
-          {ratings.map(r => (
+          {[1, 2, 3, 4, 5].map(r => (
             <TouchableOpacity key={r} onPress={() => setRating(r)}>
               <Ionicons name={r <= rating ? 'star' : 'star-outline'} size={36}
                 color={r <= rating ? Colors.amberMid : Colors.border} />
@@ -51,17 +51,17 @@ export default function FeedbackScreen({ navigation }) {
         </View>
         {rating > 0 && (
           <Text style={styles.ratingLabel}>
-            {rating === 1 ? 'Poor' : rating === 2 ? 'Fair' : rating === 3 ? 'Good' : rating === 4 ? 'Very Good' : 'Excellent'}
+            {rating === 1 ? t('feedback.poor') : rating === 2 ? t('feedback.fair') : rating === 3 ? t('feedback.good') : rating === 4 ? t('feedback.veryGood') : t('feedback.excellent')}
           </Text>
         )}
 
-        <Text style={styles.sectionLabel}>Your Feedback</Text>
+        <Text style={styles.sectionLabel}>{t('feedback.yourFeedback')}</Text>
         <TextInput style={styles.textArea} multiline numberOfLines={5}
-          placeholder="Tell us what you think..."
+          placeholder={t('feedback.tellUsMore')}
           placeholderTextColor={Colors.textMuted} value={feedback} onChangeText={setFeedback}
         />
 
-        <Button label="Submit Feedback" onPress={handleSubmit}
+        <Button label={t('feedback.submitFeedback')} onPress={handleSubmit}
           disabled={!feedback.trim() || rating === 0} style={{ marginTop: Spacing.xl }} />
       </ScrollView>
     </View>

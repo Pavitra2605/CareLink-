@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
+import { useLanguage } from '../../i18n';
 
 const { width } = Dimensions.get('window');
 const VIEWFINDER_H = 320;
@@ -22,6 +23,7 @@ const severityColors = { low: Colors.success, medium: Colors.amberMid, high: Col
 const severityIcons  = { low: 'checkmark-circle', medium: 'warning', high: 'alert-circle' };
 
 export default function VLMScreen({ navigation }) {
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const cameraRef = useRef(null);
 
@@ -65,7 +67,7 @@ export default function VLMScreen({ navigation }) {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Live VLM Analysis</Text>
+          <Text style={styles.headerTitle}>{t('ai.vlm')}</Text>
           <View style={{ width: 32 }} />
         </View>
 
@@ -103,7 +105,7 @@ export default function VLMScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Live VLM Analysis</Text>
+        <Text style={styles.headerTitle}>{t('ai.vlm')}</Text>
         <View style={{ width: 32 }} />
       </View>
 

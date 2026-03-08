@@ -1,4 +1,5 @@
 import React from 'react';
+import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -6,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, FontSizes, FontWeights } from '../theme';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../i18n';
 
 // Auth screens
 import {
@@ -76,6 +78,7 @@ const Tab = createBottomTabNavigator();
 // ─── Bottom Tab Navigator ───
 function MainTabs() {
   const insets = useSafeAreaInsets();
+  const { t } = useLanguage();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -105,17 +108,17 @@ function MainTabs() {
         },
       })}
     >
-      <Tab.Screen name="HomeTab" component={HomeStackScreen} options={{ tabBarLabel: 'Home' }} />
-      <Tab.Screen name="HealthTab" component={HealthStackScreen} options={{ tabBarLabel: 'Health' }} />
+      <Tab.Screen name="HomeTab" component={HomeStackScreen} options={{ tabBarLabel: t('tabs.home') }} />
+      <Tab.Screen name="HealthTab" component={HealthStackScreen} options={{ tabBarLabel: t('tabs.health') }} />
       <Tab.Screen name="EmergencyTab" component={EmergencyStackScreen}
         options={{
-          tabBarLabel: 'Emergency',
+          tabBarLabel: t('tabs.emergency'),
           tabBarIconStyle: {},
           tabBarActiveTintColor: Colors.error,
         }}
       />
-      <Tab.Screen name="MedicineTab" component={MedicineStackScreen} options={{ tabBarLabel: 'Medicine' }} />
-      <Tab.Screen name="AITab" component={AIStackScreen} options={{ tabBarLabel: 'AI Suite' }} />
+      <Tab.Screen name="MedicineTab" component={MedicineStackScreen} options={{ tabBarLabel: t('tabs.medicine') }} />
+      <Tab.Screen name="AITab" component={AIStackScreen} options={{ tabBarLabel: t('tabs.aiSuite') }} />
     </Tab.Navigator>
   );
 }
@@ -238,7 +241,13 @@ function MedicineStackScreen() {
 export default function AppNavigator() {
   const { user, loading } = useAuth();
 
-  if (loading) return null; // or a loading screen
+  if (loading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.bgPrimary }}>
+        <ActivityIndicator size="large" color={Colors.accent} />
+      </View>
+    );
+  }
 
   return (
     <NavigationContainer>

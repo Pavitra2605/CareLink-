@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Badge, Button } from '../../components/common';
+import { useLanguage } from '../../i18n';
 
 const syncItems = [
   { label: 'Health Profile', status: 'synced', time: '2 min ago', icon: 'person' },
@@ -17,9 +18,10 @@ const statusIcon = { synced: 'checkmark-circle', syncing: 'sync', error: 'alert-
 const statusColor = { synced: Colors.success, syncing: Colors.accent, error: Colors.error };
 
 export default function SyncStatusScreen({ navigation }) {
+  const { t } = useLanguage();
   return (
     <View style={styles.container}>
-      <Header title="Sync Status" onBack={() => navigation.goBack()} />
+      <Header title={t('health.syncStatus')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Overall Status */}
         <View style={[styles.overallCard, Shadows.soft]}>
