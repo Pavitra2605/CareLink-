@@ -6,6 +6,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
+
+const { width } = Dimensions.get('window');
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../i18n';
 
