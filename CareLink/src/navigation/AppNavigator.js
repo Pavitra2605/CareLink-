@@ -70,7 +70,7 @@ import {
 } from '../screens/settings';
 
 // AI
-import { AIHomeScreen, AIChatScreen, VLMScreen } from '../screens/ai';
+import { AIHomeScreen, AIChatScreen } from '../screens/ai';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -129,7 +129,6 @@ function AIStackScreen() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="AIHome" component={AIHomeScreen} />
       <Stack.Screen name="AIChat" component={AIChatScreen} />
-      <Stack.Screen name="VLM" component={VLMScreen} />
     </Stack.Navigator>
   );
 }

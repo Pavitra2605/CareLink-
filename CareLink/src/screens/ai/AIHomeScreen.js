@@ -5,17 +5,15 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows, Gradients } from '../../theme';
+import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../i18n';
 
-const { width } = Dimensions.get('window');
-
 const features = [
-  { icon: 'sparkles', label: 'Smart Diagnosis', desc: 'Get instant AI-driven insights on your symptoms' },
-  { icon: 'document-text', label: 'Report Analysis', desc: 'Upload a report and let AI interpret the results' },
-  { icon: 'medkit', label: 'Medication Guide', desc: 'Ask about dosages, interactions, and alternatives' },
-  { icon: 'heart', label: 'Wellness Tips', desc: 'Personalised health and lifestyle recommendations' },
+  { icon: 'chatbubble-ellipses', label: 'Health Chat', desc: 'Ask anything about your symptoms or health' },
+  { icon: 'camera', label: 'Photo Analysis', desc: 'Snap a photo of a wound, rash, or symptom' },
+  { icon: 'document-text', label: 'Report Help', desc: 'Get AI insights on your medical reports' },
+  { icon: 'medkit', label: 'Medication Guide', desc: 'Check dosages, interactions & alternatives' },
 ];
 
 export default function AIHomeScreen({ navigation }) {
@@ -33,7 +31,7 @@ export default function AIHomeScreen({ navigation }) {
           <Text style={styles.sub}>Powered by CareLink AI</Text>
         </View>
 
-        {/* AI Chat Card */}
+        {/* Single Chat Card */}
         <TouchableOpacity
           activeOpacity={0.88}
           onPress={() => navigation.navigate('AIChat')}
@@ -49,32 +47,7 @@ export default function AIHomeScreen({ navigation }) {
             <View style={{ flex: 1 }}>
               <Text style={styles.mainCardTitle}>AI Health Assistant</Text>
               <Text style={styles.mainCardSub}>
-                Chat with your personal AI doctor — ask anything about your health.
-              </Text>
-            </View>
-            <View style={styles.mainCardArrow}>
-              <Ionicons name="arrow-forward" size={22} color="#fff" />
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
-
-        {/* Live VLM Card */}
-        <TouchableOpacity
-          activeOpacity={0.88}
-          onPress={() => navigation.navigate('VLM')}
-        >
-          <LinearGradient
-            colors={['#E8843A', '#F0A050']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            style={[styles.mainCard, Shadows.medium]}
-          >
-            <View style={styles.mainCardIcon}>
-              <Ionicons name="eye" size={32} color="#fff" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.mainCardTitle}>Live VLM Analysis</Text>
-              <Text style={styles.mainCardSub}>
-                Point your camera at a wound, rash, or symptom for real-time visual AI analysis.
+                Chat with your AI doctor — ask questions or snap a photo for visual analysis, all in one conversation.
               </Text>
             </View>
             <View style={styles.mainCardArrow}>
@@ -84,7 +57,7 @@ export default function AIHomeScreen({ navigation }) {
         </TouchableOpacity>
 
         {/* Features Grid */}
-        <Text style={styles.sectionTitle}>What the AI can help with</Text>
+        <Text style={styles.sectionTitle}>What you can do</Text>
         <View style={styles.grid}>
           {features.map((f, i) => (
             <TouchableOpacity
