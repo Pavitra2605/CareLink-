@@ -40,6 +40,22 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+CareLink/android/
+CareLink/ios/
+
+# AI service Python artifacts
+ai-service/__pycache__/
+ai-service/**/__pycache__/
+ai-service/.env
+ai-service/app/models/*.pkl
+ai-service/app/models/*.joblib
+*.pyc
+
+# Supabase local
+supabase/.temp/
+
+# Setup scripts (contain token references)
+CareLink/setup_supabase.js
 
 CareLink/scripts/seed.js
 CareLink/supabase

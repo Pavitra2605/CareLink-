@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity,
   KeyboardAvoidingView, Platform, ActivityIndicator,
@@ -8,6 +8,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../i18n';
+import { chat as aiChat } from '../../services/aiService';
+import {
+  createChatSession,
+  saveChatMessage,
+  updateSessionTitle,
+  getChatMessages,
+} from '../../services/historyService';
 
 const SUGGESTED = [
   'What are symptoms of diabetes?',
@@ -16,23 +23,39 @@ const SUGGESTED = [
   'What does a high creatinine level mean?',
 ];
 
-const MOCK_RESPONSES = {
-  default: "I'm your AI Health Assistant. I can help answer health-related questions, explain reports, or guide you through symptoms. Please note this is for informational purposes only — always consult a doctor for medical decisions.",
-};
+const FALLBACK_REPLY =
+  "I'm sorry, I couldn't reach the AI service right now. Please check your connection and try again.";
 
 let _msgId = 1;
 const makeMsg = (role, text) => ({ id: String(_msgId++), role, text, ts: new Date() });
 
-export default function AIChatScreen({ navigation }) {
+export default function AIChatScreen({ navigation, route }) {
   const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
-  const [messages, setMessages] = useState([
-    makeMsg('assistant', `Hello${profile?.full_name ? ', ' + profile.full_name.split(' ')[0] : ''}! 👋 I'm your CareLink AI Health Assistant. How can I help you today?`),
-  ]);
+  const greetingText = `Hello${profile?.full_name ? ', ' + profile.full_name.split(' ')[0] : ''}! 👋 I'm your CareLink AI Health Assistant. How can I help you today?`;
+  const [messages, setMessages] = useState([makeMsg('assistant', greetingText)]);
   const [input, setInput] = useState('');
   const [thinking, setThinking] = useState(false);
+  const [sessionId, setSessionId] = useState(null);
+  const titleSetRef = useRef(false);
   const listRef = useRef(null);
+
+  // Create a chat session on mount & persist the greeting
+  useEffect(() => {
+    if (!profile?.id) return;
+    (async () => {
+      try {
+        const session = await createChatSession(profile.id, 'New conversation');
+        if (session) {
+          setSessionId(session.id);
+          await saveChatMessage(session.id, profile.id, 'assistant', greetingText);
+        }
+      } catch (e) {
+        console.warn('[AIChat] session create failed:', e.message);
+      }
+    })();
+  }, [profile?.id]);
 
   const sendMessage = useCallback(async (text) => {
     const trimmed = (text || input).trim();
@@ -43,14 +66,49 @@ export default function AIChatScreen({ navigation }) {
     setMessages(prev => [...prev, userMsg]);
     setThinking(true);
 
-    // Simulate AI response (replace with real API call)
-    setTimeout(() => {
-      const reply = makeMsg('assistant', MOCK_RESPONSES.default);
+    // Persist user message
+    if (sessionId && profile?.id) {
+      saveChatMessage(sessionId, profile.id, 'user', trimmed).catch(() => {});
+      // Set session title from first user message
+      if (!titleSetRef.current) {
+        titleSetRef.current = true;
+        updateSessionTitle(sessionId, trimmed.slice(0, 80)).catch(() => {});
+      }
+    }
+
+    try {
+      const history = messages.slice(1).map(m => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.text,
+      }));
+
+      const data = await aiChat({
+        message: trimmed,
+        history,
+        triageContext: route?.params?.triageContext || null,
+        language: 'en',
+      });
+
+      const replyText = data.reply || FALLBACK_REPLY;
+      const reply = makeMsg('assistant', replyText);
       setMessages(prev => [...prev, reply]);
+
+      // Persist assistant reply
+      if (sessionId && profile?.id) {
+        saveChatMessage(sessionId, profile.id, 'assistant', replyText, {
+          model: data.model_name,
+          context_used: data.context_used,
+        }).catch(() => {});
+      }
+    } catch (err) {
+      console.warn('[AIChat] API error:', err.message);
+      const reply = makeMsg('assistant', FALLBACK_REPLY);
+      setMessages(prev => [...prev, reply]);
+    } finally {
       setThinking(false);
       setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
-    }, 1200);
-  }, [input, thinking]);
+    }
+  }, [input, thinking, messages, sessionId, profile?.id]);
 
   const formatTime = (d) =>
     d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });

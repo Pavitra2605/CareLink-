@@ -7,24 +7,65 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
+import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../i18n';
+import { analyzeImage } from '../../services/aiService';
+import { saveVlmScan } from '../../services/historyService';
 
 const { width } = Dimensions.get('window');
 const VIEWFINDER_H = 320;
 const CORNER = 24;
 const BORDER = 3;
 
-const MOCK_FINDINGS = [
-  { severity: 'low',    label: 'Mild Redness',     desc: 'Surface-level erythema detected. Likely minor irritation or contact dermatitis.' },
-  { severity: 'medium', label: 'Possible Swelling', desc: 'Slight tissue elevation observed. Monitor for changes over 24 hours.' },
-];
+const severityColors = { low: Colors.success, medium: Colors.amberMid, high: Colors.error, info: Colors.accent };
+const severityIcons  = { low: 'checkmark-circle', medium: 'warning', high: 'alert-circle', info: 'information-circle' };
 
-const severityColors = { low: Colors.success, medium: Colors.amberMid, high: Colors.error };
-const severityIcons  = { low: 'checkmark-circle', medium: 'warning', high: 'alert-circle' };
+/**
+ * Parse the free-text VLM analysis into structured finding cards.
+ * Falls back to a single card when parsing isn't possible.
+ */
+function parseFindings(analysisText) {
+  if (!analysisText) return [];
+
+  // Try to split on numbered lines ("1.", "2.", …) or bullet points
+  const lines = analysisText
+    .split(/\n/)
+    .map(l => l.trim())
+    .filter(Boolean);
+
+  if (lines.length <= 2) {
+    // Short response → single card
+    return [{ severity: 'info', label: 'AI Analysis', desc: analysisText.trim() }];
+  }
+
+  // Group into findings heuristically
+  const findings = [];
+  let current = '';
+  for (const line of lines) {
+    if (/^\d+[\.\)]/.test(line) || /^[-•*]/.test(line)) {
+      if (current) findings.push(current);
+      current = line.replace(/^[\d\.\)\-•*\s]+/, '');
+    } else {
+      current += (current ? ' ' : '') + line;
+    }
+  }
+  if (current) findings.push(current);
+
+  return findings.map((desc) => {
+    const lower = desc.toLowerCase();
+    let severity = 'info';
+    if (/concern|urgent|emergency|critical|serious|immediate/i.test(lower)) severity = 'high';
+    else if (/monitor|possible|moderate|follow.?up|observe/i.test(lower)) severity = 'medium';
+    else if (/normal|mild|minor|no .*(concern|abnormal)/i.test(lower)) severity = 'low';
+    const label = desc.length > 60 ? desc.slice(0, 57) + '…' : desc;
+    return { severity, label, desc };
+  });
+}
 
 export default function VLMScreen({ navigation }) {
   const { t } = useLanguage();
   const insets = useSafeAreaInsets();
+  const { profile } = useAuth();
   const cameraRef = useRef(null);
 
   // ── Camera permission ──────────────────────────────────────
@@ -35,26 +76,69 @@ export default function VLMScreen({ navigation }) {
   const [flash,     setFlash]     = useState('off');    // 'off' | 'torch'
   const [analysing, setAnalysing] = useState(false);
   const [results,   setResults]   = useState(null);
+  const [error,     setError]     = useState(null);
 
   // ── Analyse handler ────────────────────────────────────────
   const handleAnalyse = async () => {
     if (analysing) return;
     setAnalysing(true);
     setResults(null);
+    setError(null);
+
     try {
+      let photoUri = null;
       // Capture a still frame to send to the VLM API
       if (cameraRef.current) {
-        await cameraRef.current.takePictureAsync({ quality: 0.6, skipProcessing: true });
+        const photo = await cameraRef.current.takePictureAsync({
+          quality: 0.7,
+          skipProcessing: true,
+        });
+        photoUri = photo?.uri;
       }
-    } catch (_) {}
-    // TODO: send photo.uri to your VLM endpoint here.
-    setTimeout(() => {
+
+      if (!photoUri) {
+        throw new Error('Could not capture photo');
+      }
+
+      // Send to MedGemma VLM endpoint
+      const data = await analyzeImage({
+        imageUri: photoUri,
+        question:
+          'Analyze this medical image. Identify any visible conditions, abnormalities, or areas of concern. ' +
+          'For each finding, indicate its severity (mild, moderate, or concerning).',
+        language: 'en',
+      });
+
+      // Parse the VLM free-text analysis into structured findings
+      const findings = parseFindings(data.analysis);
+      setResults(findings);
+
+      // Persist scan to Supabase
+      if (profile?.id) {
+        saveVlmScan(profile.id, {
+          localUri: photoUri,
+          question: 'Analyze this medical image. Identify any visible conditions, abnormalities, or areas of concern.',
+          analysis: data.analysis,
+          findings,
+          modelName: data.model_name,
+          modelReady: data.model_ready,
+        }).catch(e => console.warn('[VLM] save scan failed:', e.message));
+      }
+    } catch (err) {
+      console.warn('[VLM] Analysis error:', err.message, err);
+      const msg = err.message || '';
+      if (msg.includes('aborted') || msg.includes('Network')) {
+        setError('Network error — make sure your AI service is running and your phone is on the same Wi-Fi as your PC.');
+      } else {
+        setError(msg || 'Analysis failed. Please try again.');
+      }
+      setResults(null);
+    } finally {
       setAnalysing(false);
-      setResults(MOCK_FINDINGS);
-    }, 2200);
+    }
   };
 
-  const handleReset = () => { setResults(null); setAnalysing(false); };
+  const handleReset = () => { setResults(null); setAnalysing(false); setError(null); };
 
   // ── Permission not yet determined ─────────────────────────
   if (!permission) return <View style={styles.container} />;
@@ -132,6 +216,11 @@ export default function VLMScreen({ navigation }) {
                 <View style={styles.scanLine} />
                 <Text style={styles.scanningText}>Analysing…</Text>
               </View>
+            ) : error ? (
+              <View style={styles.centreOverlay}>
+                <Ionicons name="alert-circle" size={48} color={Colors.error} />
+                <Text style={styles.scanDoneText}>Analysis Failed</Text>
+              </View>
             ) : results ? (
               <View style={styles.centreOverlay}>
                 <Ionicons name="checkmark-circle" size={48} color={Colors.success} />
@@ -162,7 +251,7 @@ export default function VLMScreen({ navigation }) {
           </View>
 
           {/* Analyse / Scan Again button */}
-          {results ? (
+          {(results || error) ? (
             <TouchableOpacity style={styles.clearBtn} onPress={handleReset}>
               <Ionicons name="refresh" size={20} color={Colors.accent} />
               <Text style={styles.clearBtnText}>Scan Again</Text>
@@ -186,6 +275,16 @@ export default function VLMScreen({ navigation }) {
             </TouchableOpacity>
           )}
         </View>
+
+        {/* Error */}
+        {error && (
+          <View style={[styles.results, { backgroundColor: Colors.error + '10', borderRadius: Radius.lg, padding: Spacing.md }]}>
+            <Text style={[styles.resultsTitle, { color: Colors.error }]}>Error</Text>
+            <Text style={{ color: Colors.textSecondary, fontSize: FontSizes.sm, lineHeight: 20 }}>
+              {error}
+            </Text>
+          </View>
+        )}
 
         {/* Results */}
         {results && (

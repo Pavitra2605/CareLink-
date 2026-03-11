@@ -1,0 +1,905 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CARELINK AI - Symptom Triage</title>
+  <style>
+    :root {
+      --green-dark:   #0d5c2e;
+      --green:        #1a7a42;
+      --green-light:  #e8f5ee;
+      --blue:         #0284c7;
+      --blue-light:   #e0f2fe;
+      --blue-dark:    #1a3a5c;
+      --yellow:       #f59e0b;
+      --yellow-bg:    #fffbeb;
+      --red:          #dc2626;
+      --red-bg:       #fef2f2;
+      --gray-50:      #f9fafb;
+      --gray-100:     #f3f4f6;
+      --gray-200:     #e5e7eb;
+      --gray-400:     #9ca3af;
+      --gray-600:     #4b5563;
+      --gray-800:     #1f2937;
+      --white:        #ffffff;
+      --shadow-sm:    0 1px 3px rgba(0,0,0,.08);
+      --shadow-md:    0 4px 20px rgba(0,0,0,.10);
+      --radius:       12px;
+      --radius-sm:    8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #e8f5ee 0%, #f0f7ff 100%);
+      min-height: 100vh;
+      color: var(--gray-800);
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      color: var(--white);
+      padding: 20px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.2);
+    }
+    .logo { width: 46px; height: 46px; background: rgba(255,255,255,.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .header-text h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -.3px; }
+    .header-text p  { font-size: .85rem; opacity: .85; margin-top: 2px; }
+    .badge-ai { margin-left: auto; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.30); border-radius: 20px; padding: 5px 14px; font-size: .78rem; font-weight: 600; letter-spacing: .4px; }
+    .model-status { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); border-radius: 20px; padding: 4px 12px; font-size: .72rem; font-weight: 600; cursor: default; }
+    .model-status .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .model-status.loading .dot  { background: var(--yellow); animation: pulse-dot 1s ease-in-out infinite; }
+    .model-status.ready .dot    { background: #4ade80; }
+    .model-status.error .dot    { background: var(--red); }
+    .model-banner { padding: 10px 18px; border-radius: var(--radius-sm); font-size: .85rem; margin-bottom: 16px; display: none; align-items: center; gap: 10px; }
+    .model-banner.warn  { background: var(--yellow-bg); border: 1px solid #fde68a; color: #92400e; }
+    .model-banner.err   { background: var(--red-bg); border: 1px solid #fca5a5; color: #7f1d1d; }
+    .model-banner .retry-btn { background: var(--green); color: white; border: none; border-radius: 6px; padding: 5px 14px; font-size: .8rem; font-weight: 600; cursor: pointer; margin-left: auto; flex-shrink: 0; }
+    .model-banner .retry-btn:hover { opacity: .85; }
+
+    main { max-width: 860px; margin: 36px auto; padding: 0 20px 60px; }
+
+    .card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-md); padding: 28px 28px; margin-bottom: 20px; }
+    .card-title { font-size: 1rem; font-weight: 700; color: var(--green-dark); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+    .card-title::before { content: ''; display: inline-block; width: 4px; height: 18px; background: var(--green); border-radius: 2px; }
+
+    .mode-tabs { display: flex; gap: 0; margin-bottom: 20px; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); overflow: hidden; }
+    .mode-tab { flex: 1; padding: 12px; font-size: .9rem; font-weight: 600; text-align: center; cursor: pointer; border: none; background: var(--gray-50); color: var(--gray-600); transition: background .2s, color .2s; }
+    .mode-tab.active { background: var(--green); color: var(--white); }
+
+    .triage-input-wrap { position: relative; }
+    .triage-input {
+      width: 100%;
+      min-height: 110px;
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      font-size: 1rem;
+      font-family: inherit;
+      color: var(--gray-800);
+      background: var(--gray-50);
+      resize: vertical;
+      line-height: 1.6;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .triage-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(26,122,66,.12); background: var(--white); }
+    .triage-input::placeholder { color: var(--gray-400); }
+    .input-hint { font-size: .78rem; color: var(--gray-400); margin-top: 8px; line-height: 1.5; }
+    .input-hint b { color: var(--gray-600); }
+
+    .example-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .example-chip {
+      background: var(--green-light);
+      border: 1px solid rgba(26,122,66,.2);
+      color: var(--green-dark);
+      border-radius: 20px;
+      padding: 5px 13px;
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .example-chip:hover { background: #c9ebd8; border-color: var(--green); }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn-submit:hover  { opacity: .92; }
+    .btn-submit:active { transform: scale(.98); }
+    .btn-submit:disabled { opacity: .6; cursor: not-allowed; }
+
+    .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.35); border-top-color: var(--white); border-radius: 50%; animation: spin .7s linear infinite; display: none; }
+    .btn-submit.loading .spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-box { background: var(--red-bg); border: 1px solid #fca5a5; border-radius: var(--radius-sm); padding: 12px 18px; color: #7f1d1d; font-size: .9rem; display: none; margin-top: 10px; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    #results, #imageResults { display: none; animation: fadeUp .4s ease; }
+
+    .emergency-banner {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 20px;
+      background: var(--red-bg); border: 2px solid var(--red);
+      border-radius: var(--radius-sm);
+      margin-bottom: 16px;
+      animation: pulse-border 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-border { 0%,100%{border-color:var(--red)}50%{border-color:#fca5a5} }
+    .emergency-banner .icon { font-size: 28px; flex-shrink: 0; }
+    .emergency-banner .text h3 { color: var(--red); font-size: 1rem; }
+    .emergency-banner .text p  { color: #7f1d1d; font-size: .88rem; margin-top: 3px; }
+
+    .risk-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; margin-bottom: 18px; }
+    .risk-badge { display: inline-flex; align-items: center; gap: 10px; padding: 10px 22px; border-radius: 50px; font-size: 1.1rem; font-weight: 800; letter-spacing: .3px; }
+    .risk-badge.LOW    { background: #dcfce7; color: #15803d; }
+    .risk-badge.MEDIUM { background: var(--yellow-bg); color: #92400e; }
+    .risk-badge.HIGH   { background: var(--red-bg); color: var(--red); }
+    .risk-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .risk-badge.LOW    .risk-dot { background: #15803d; }
+    .risk-badge.MEDIUM .risk-dot { background: var(--yellow); }
+    .risk-badge.HIGH   .risk-dot { background: var(--red); animation: pulse-dot 1s ease-in-out infinite; }
+    @keyframes pulse-dot { 0%,100%{transform:scale(1)}50%{transform:scale(1.4)} }
+
+    .confidence-row { margin-bottom: 18px; }
+    .confidence-label { display: flex; justify-content: space-between; font-size: .83rem; font-weight: 600; color: var(--gray-600); margin-bottom: 6px; }
+    .confidence-track { height: 10px; background: var(--gray-100); border-radius: 5px; overflow: hidden; }
+    .confidence-fill  { height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--green-dark), var(--green)); transition: width 1s ease; }
+
+    .explanation-box { background: var(--green-light); border-left: 4px solid var(--green); padding: 16px 18px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; margin-bottom: 18px; font-size: .95rem; line-height: 1.65; }
+    .explanation-box .label { font-size: .75rem; font-weight: 700; color: var(--green-dark); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+
+    .rules-section { margin-bottom: 16px; }
+    .rules-label { font-size: .8rem; font-weight: 700; color: var(--gray-600); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 8px; }
+    .rule-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .rule-chip  { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; border-radius: 20px; padding: 4px 12px; font-size: .8rem; font-weight: 600; }
+    .no-rules   { color: var(--gray-400); font-size: .88rem; font-style: italic; }
+
+    .meta-row { display: flex; gap: 20px; flex-wrap: wrap; padding-top: 14px; border-top: 1px solid var(--gray-100); font-size: .8rem; color: var(--gray-400); }
+    .meta-row span b { color: var(--gray-600); }
+
+    .disclaimer { background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-sm); padding: 14px 18px; font-size: .82rem; color: #78350f; line-height: 1.55; margin-top: 16px; }
+    .disclaimer b { color: #92400e; }
+
+    #chatSection { display: none; animation: fadeUp .4s ease; }
+
+    .chat-messages {
+      max-height: 400px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding: 4px 2px;
+    }
+
+    .chat-bubble {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: .92rem;
+      line-height: 1.55;
+      word-break: break-word;
+      white-space: pre-wrap;
+    }
+    .chat-bubble.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      color: var(--white);
+      border-bottom-right-radius: 4px;
+    }
+    .chat-bubble.assistant {
+      align-self: flex-start;
+      background: var(--gray-100);
+      color: var(--gray-800);
+      border-bottom-left-radius: 4px;
+    }
+    .chat-bubble.assistant.typing {
+      color: var(--gray-400);
+      font-style: italic;
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 8px;
+    }
+    .chat-input {
+      flex: 1;
+      border: 1.5px solid var(--gray-200);
+      border-radius: 24px;
+      padding: 12px 18px;
+      font-size: .95rem;
+      font-family: inherit;
+      outline: none;
+      background: var(--gray-50);
+      transition: border-color .2s;
+    }
+    .chat-input:focus { border-color: var(--green); background: var(--white); }
+    .chat-send {
+      width: 48px; height: 48px;
+      border: none;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      color: var(--white);
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity .2s;
+      flex-shrink: 0;
+    }
+    .chat-send:hover { opacity: .88; }
+    .chat-send:disabled { opacity: .5; cursor: not-allowed; }
+
+    .upload-zone { border: 2px dashed var(--gray-200); border-radius: var(--radius); padding: 32px 20px; text-align: center; cursor: pointer; transition: border-color .2s, background .2s; background: var(--gray-50); position: relative; }
+    .upload-zone:hover, .upload-zone.drag-over { border-color: var(--green); background: var(--green-light); }
+    .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; border: none; background: transparent; padding: 0; }
+    .upload-zone .upload-icon  { font-size: 2.8rem; margin-bottom: 10px; display: block; }
+    .upload-zone .upload-title { font-size: 1rem; font-weight: 700; color: var(--green-dark); margin-bottom: 4px; }
+    .upload-zone .upload-sub   { font-size: .82rem; color: var(--gray-400); }
+
+    .btn-camera { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 12px; padding: 11px; background: var(--green-light); border: 1.5px solid var(--green); border-radius: var(--radius-sm); color: var(--green-dark); font-size: .9rem; font-weight: 600; cursor: pointer; position: relative; overflow: hidden; }
+    .btn-camera:hover { background: #c9ebd8; }
+    .btn-camera input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; border: none; background: transparent; padding: 0; }
+
+    .preview-wrap { display: none; margin-top: 16px; position: relative; }
+    .preview-wrap img { width: 100%; max-height: 320px; object-fit: contain; border: 1.5px solid var(--gray-200); border-radius: var(--radius-sm); background: #000; }
+    .preview-clear { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; background: rgba(220,38,38,.85); color: white; border: none; border-radius: 50%; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .preview-filename { font-size: .78rem; color: var(--gray-400); margin-top: 6px; text-align: center; }
+
+    .image-type-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 4px; }
+    .img-type-btn { background: var(--gray-100); border: 1.5px solid var(--gray-200); color: var(--gray-600); border-radius: 20px; padding: 5px 12px; font-size: .78rem; font-weight: 600; cursor: pointer; transition: background .15s; }
+    .img-type-btn:hover, .img-type-btn.active { background: var(--green-light); border-color: var(--green); color: var(--green-dark); }
+
+    .analysis-box { background: #f0f9ff; border-left: 4px solid var(--blue); padding: 16px 18px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-size: .95rem; line-height: 1.65; white-space: pre-wrap; }
+    .analysis-box .label { font-size: .75rem; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+    .model-badge { display: inline-flex; align-items: center; gap: 6px; background: #e0f2fe; border: 1px solid #bae6fd; color: #0369a1; border-radius: 20px; padding: 4px 12px; font-size: .78rem; font-weight: 600; margin-top: 12px; }
+
+    select, textarea {
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: .95rem;
+      color: var(--gray-800);
+      outline: none;
+      transition: border-color .2s;
+      background: var(--gray-50);
+      font-family: inherit;
+    }
+    select:focus, textarea:focus { border-color: var(--green); background: var(--white); }
+    textarea { resize: vertical; min-height: 56px; line-height: 1.5; }
+
+    footer { text-align: center; padding: 24px; font-size: .8rem; color: var(--gray-400); }
+
+    @media (max-width: 560px) {
+      header { padding: 16px 20px; }
+      .card  { padding: 20px 16px; }
+      .badge-ai { display: none; }
+      .chat-bubble { max-width: 92%; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">&#127973;</div>
+  <div class="header-text">
+    <h1>CARELINK AI</h1>
+    <p>Rural Healthcare Symptom Triage - powered by MedGemma</p>
+  </div>
+  <span class="badge-ai">&#9889; MedGemma 4B-IT</span>
+  <span class="model-status loading" id="modelStatus" title="Model status"><span class="dot"></span><span class="status-text">Loading...</span></span>
+</header>
+
+<main>
+
+  <div class="card" style="padding: 8px 8px;">
+    <div class="mode-tabs" style="margin-bottom:0">
+      <button class="mode-tab active" data-mode="triage" type="button">&#129658; Symptom Triage</button>
+      <button class="mode-tab" data-mode="image" type="button">&#128300; Image Analysis</button>
+    </div>
+  </div>
+
+  <!-- Model status banner (shown when model not ready) -->
+  <div class="model-banner warn" id="modelBanner">
+    <span>&#9888;&#65039; <b>MedGemma is loading...</b> Triage and image analysis will use template fallback until the model is ready (~40s).</span>
+  </div>
+
+  <!-- TRIAGE SECTION -->
+  <div id="triageSection">
+    <div class="card">
+      <div class="card-title">Describe Your Symptoms</div>
+      <p style="font-size:.85rem;color:var(--gray-600);margin:-10px 0 16px;line-height:1.55">
+        Tell us everything in your own words - symptoms, age, how long it has been going on,
+        and any conditions you have. Our AI will handle the rest.
+      </p>
+
+      <form id="triageForm" novalidate>
+        <div class="triage-input-wrap">
+          <textarea
+            id="triageInput"
+            class="triage-input"
+            placeholder="Example: I am a 45-year-old male with diabetes. I have had severe chest pain and shortness of breath for the past 2 days. The pain gets worse when I move..."
+            required
+          ></textarea>
+        </div>
+
+        <div class="input-hint">
+          <b>Tip:</b> Include your <b>age</b>, <b>symptoms</b>, <b>how long</b> they have lasted,
+          and any <b>chronic conditions</b> (diabetes, hypertension, etc.) for the most accurate triage.
+        </div>
+
+        <div class="example-chips">
+          <button type="button" class="example-chip" data-example="I am 52 years old with hypertension. I have severe chest pain radiating to my left arm and sweating since this morning.">Chest pain</button>
+          <button type="button" class="example-chip" data-example="I am a 28-year-old female. I have had a mild headache and runny nose for 3 days. No chronic conditions.">Cold symptoms</button>
+          <button type="button" class="example-chip" data-example="My 5-year-old child has had a high fever of 39.5 C, vomiting, and has not been eating for 2 days.">Child fever</button>
+          <button type="button" class="example-chip" data-example="I am 65 with diabetes and COPD. I have been having increasing shortness of breath and a productive cough for 5 days.">Breathing issues</button>
+          <button type="button" class="example-chip" data-example="I am 35 and have a painful red swollen area on my right leg. It is warm to touch and spreading. Started yesterday.">Skin infection</button>
+        </div>
+
+        <div class="error-box" id="formError"></div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">
+          <div class="spinner"></div>
+          <span class="btn-text">Analyze Symptoms</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Triage Results -->
+    <div id="results">
+      <div class="emergency-banner" id="emergencyBanner" style="display:none">
+        <div class="icon">&#128680;</div>
+        <div class="text">
+          <h3>Emergency - Call 112 / 911 Immediately</h3>
+          <p>This assessment indicates a life-threatening condition requiring immediate emergency care.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Triage Result</div>
+        <div class="risk-row">
+          <span class="risk-badge" id="riskBadge"><span class="risk-dot"></span><span id="riskText">-</span></span>
+          <span style="font-size:.85rem;color:var(--gray-600)">Request&nbsp;<code id="reqId" style="font-size:.78rem;color:var(--gray-400)"></code></span>
+        </div>
+        <div class="confidence-row">
+          <div class="confidence-label"><span>AI Confidence</span><span id="confPct">-</span></div>
+          <div class="confidence-track"><div class="confidence-fill" id="confBar" style="width:0%"></div></div>
+        </div>
+        <div class="explanation-box">
+          <div class="label">&#129302; MedGemma Assessment</div>
+          <div id="explanationText">-</div>
+        </div>
+        <div class="rules-section">
+          <div class="rules-label">Clinical Safety Rules Triggered</div>
+          <div class="rule-chips" id="ruleChips"></div>
+        </div>
+        <div class="meta-row">
+          <span><b>Model:</b> <span id="modelVer">-</span></span>
+          <span><b>Escalated:</b> <span id="escalated">-</span></span>
+          <span><b>Time:</b> <span id="timestamp">-</span></span>
+        </div>
+      </div>
+
+      <div class="disclaimer">
+        <b>&#9888;&#65039; Medical Disclaimer:</b> This AI assessment is for informational purposes only and does
+        <b>not</b> replace professional medical advice. Always consult a qualified healthcare provider.
+      </div>
+    </div>
+
+    <!-- Chat Section -->
+    <div id="chatSection">
+      <div class="card">
+        <div class="card-title">&#128172; Follow-Up Chat</div>
+        <p style="font-size:.84rem;color:var(--gray-600);margin:-10px 0 14px">
+          Ask questions about your triage result, symptoms, or next steps.
+        </p>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-row">
+          <input type="text" class="chat-input" id="chatInput" placeholder="Ask a follow-up question..." />
+          <button class="chat-send" id="chatSend" title="Send">&#10148;</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- IMAGE ANALYSIS SECTION -->
+  <div id="imageSection" style="display:none">
+    <div class="card">
+      <div class="card-title">&#128300; Medical Image Analysis</div>
+      <p style="font-size:.85rem;color:var(--gray-600);margin:-10px 0 18px">
+        Upload or capture a medical photo - chest X-ray, skin lesion, wound, fundus image - and let
+        MedGemma analyse it. <b>Not a diagnosis</b>; consult a healthcare professional.
+      </p>
+
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="imgFileInput" accept="image/*" />
+        <span class="upload-icon">&#128444;&#65039;</span>
+        <div class="upload-title">Drop an image here or click to browse</div>
+        <div class="upload-sub">JPEG - PNG - WEBP - BMP | Max 20 MB</div>
+      </div>
+
+      <button class="btn-camera" type="button">
+        &#128247; Capture with Camera
+        <input type="file" id="cameraInput" accept="image/*" capture="environment" />
+      </button>
+
+      <div class="preview-wrap" id="previewWrap">
+        <img id="previewImg" src="" alt="Preview" />
+        <button class="preview-clear" id="clearImg" type="button" title="Remove image">&#10005;</button>
+        <div class="preview-filename" id="previewFilename"></div>
+      </div>
+
+      <div>
+        <label style="font-size:.82rem;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.4px;display:block;margin-top:18px;margin-bottom:6px">
+          Image Type and Question
+        </label>
+        <div class="image-type-row" id="imageTypeBtns">
+          <button class="img-type-btn active" type="button" data-q="What do you observe in this medical image? Are there any concerning findings?">General</button>
+          <button class="img-type-btn" type="button" data-q="Analyse this chest X-ray. Describe lung fields, heart size, and any abnormalities.">Chest X-ray</button>
+          <button class="img-type-btn" type="button" data-q="Examine this skin lesion. Describe size, colour, borders, symmetry, and concerning features.">Skin / Lesion</button>
+          <button class="img-type-btn" type="button" data-q="Describe this wound or injury. Comment on depth, tissue, signs of infection, and care needed.">Wound</button>
+          <button class="img-type-btn" type="button" data-q="Analyse this fundus or eye image. Note retinal changes, disc appearance, or vascular abnormalities.">Fundus / Eye</button>
+          <button class="img-type-btn" type="button" data-q="Describe this CT or MRI scan. Note any visible abnormalities, masses, or structural changes.">CT / MRI</button>
+        </div>
+      </div>
+
+      <div style="margin-top:14px">
+        <label for="imgQuestion" style="font-size:.82rem;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.4px">Custom question</label>
+        <textarea id="imgQuestion" rows="2" placeholder="Ask a specific question about the image..." style="width:100%;margin-top:6px">What do you observe in this medical image? Are there any concerning findings?</textarea>
+      </div>
+
+      <div class="error-box" id="imgError" style="margin-top:12px"></div>
+
+      <button type="button" class="btn-submit" id="analyzeBtn" style="margin-top:14px">
+        <div class="spinner"></div>
+        <span class="btn-text">Analyze Image</span>
+      </button>
+    </div>
+
+    <div id="imageResults">
+      <div class="card">
+        <div class="card-title">&#129658; MedGemma Vision Analysis</div>
+        <div class="analysis-box">
+          <div class="label">AI Medical Image Interpretation</div>
+          <div id="analysisText">-</div>
+        </div>
+        <div id="imgModelBadge" class="model-badge" style="display:none">
+          <span>&#129302;</span> <span id="imgModelName"></span>
+        </div>
+      </div>
+      <div class="disclaimer">
+        <b>&#9888;&#65039; Vision Analysis Disclaimer:</b> MedGemma image analysis is experimental and for
+        <b>educational / informational purposes only</b>. Always have medical images reviewed by a qualified physician.
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>CARELINK AI - Rural Healthcare Accessibility Platform</footer>
+
+<script>
+  var API_BASE = window.location.origin.indexOf('file://') !== -1
+    ? 'http://localhost:8000'
+    : window.location.origin;
+
+  var triageContext = null;
+  var chatHistory   = [];
+
+  // MODEL STATUS POLLING
+  (function pollModelStatus() {
+    var statusEl  = document.getElementById('modelStatus');
+    var statusTxt = statusEl.querySelector('.status-text');
+    var banner    = document.getElementById('modelBanner');
+    var modelReady = false;
+
+    function check() {
+      fetch(API_BASE + '/api/v1/model/info')
+        .then(function(r) {
+          if (r.status === 503) throw new Error('loading');
+          return r.json();
+        })
+        .then(function() {
+          // model/info returns 200 => ML model loaded, now also check LLM
+          return fetch(API_BASE + '/api/v1/triage/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: 'ping', history: [], language: 'en' })
+          });
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.model_ready) {
+            statusEl.className = 'model-status ready';
+            statusTxt.textContent = 'Ready';
+            banner.style.display = 'none';
+            modelReady = true;
+          } else {
+            throw new Error('not-ready');
+          }
+        })
+        .catch(function() {
+          if (!modelReady) {
+            statusEl.className = 'model-status loading';
+            statusTxt.textContent = 'Loading...';
+            banner.className = 'model-banner warn';
+            banner.style.display = 'flex';
+            banner.innerHTML = '<span>&#9888;&#65039; <b>MedGemma is loading...</b> Triage and image analysis will use template fallback until the model is ready (~40s).</span>';
+            setTimeout(check, 5000);
+          }
+        });
+    }
+    check();
+
+    // Expose retry function
+    window.retryModelLoad = function() {
+      statusEl.className = 'model-status loading';
+      statusTxt.textContent = 'Retrying...';
+      banner.className = 'model-banner warn';
+      banner.style.display = 'flex';
+      banner.innerHTML = '<span>&#9888;&#65039; <b>Retrying model load...</b></span>';
+      fetch(API_BASE + '/api/v1/model/reload', { method: 'POST' })
+        .then(function() { modelReady = false; setTimeout(check, 5000); })
+        .catch(function() { setTimeout(check, 5000); });
+    };
+  })();
+
+  // MODE TABS
+  document.querySelectorAll('.mode-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.mode-tab').forEach(function(t) { t.classList.remove('active'); });
+      tab.classList.add('active');
+      var mode = tab.getAttribute('data-mode');
+      document.getElementById('triageSection').style.display = mode === 'triage' ? 'block' : 'none';
+      document.getElementById('imageSection').style.display  = mode === 'image'  ? 'block' : 'none';
+    });
+  });
+
+  // EXAMPLE CHIPS
+  document.querySelectorAll('.example-chip').forEach(function(chip) {
+    chip.addEventListener('click', function() {
+      document.getElementById('triageInput').value = chip.getAttribute('data-example');
+      document.getElementById('triageInput').focus();
+    });
+  });
+
+  // TRIAGE FORM SUBMIT
+  document.getElementById('triageForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    var rawText = document.getElementById('triageInput').value.trim();
+    var errBox  = document.getElementById('formError');
+    errBox.style.display = 'none';
+
+    if (!rawText || rawText.length < 10) {
+      showErr('Please describe your symptoms in more detail (at least 10 characters).');
+      return;
+    }
+
+    var parsed = parseTriageInput(rawText);
+    setLoading(true);
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('chatSection').style.display = 'none';
+
+    var payload = {
+      symptoms_text:      rawText,
+      age:                parsed.age,
+      duration_days:      parsed.duration_days,
+      chronic_conditions: parsed.chronic_conditions,
+      language:           'en'
+    };
+
+    fetch(API_BASE + '/api/v1/triage/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then(function(resp) {
+      if (!resp.ok) {
+        return resp.json().catch(function() { return { detail: resp.statusText }; }).then(function(err) {
+          throw new Error(err.detail || 'HTTP ' + resp.status);
+        });
+      }
+      return resp.json();
+    })
+    .then(function(data) {
+      renderResults(data, rawText);
+    })
+    .catch(function(err) {
+      showErr('Request failed: ' + err.message);
+    })
+    .finally(function() {
+      setLoading(false);
+    });
+  });
+
+  // Parse age, duration, conditions from free text
+  function parseTriageInput(text) {
+    var age = 30;
+    var duration_days = 1;
+    var chronic_conditions = [];
+
+    // Age extraction
+    var ageMatch = text.match(/\b(\d{1,3})\s*[-]?\s*(?:year|yr|y\.?o\.?|years?\s*old)\b/i)
+                || text.match(/\bage(?:d)?\s*[:=]?\s*(\d{1,3})\b/i)
+                || text.match(/\bI'?m\s+(\d{1,3})\b/i);
+    if (ageMatch) age = Math.min(150, Math.max(0, parseInt(ageMatch[1])));
+
+    // Duration extraction
+    var durMatch = text.match(/(?:for|since|past|last)\s+(?:the\s+)?(?:past\s+)?(\d+)\s*(day|week|month|hour)/i)
+                || text.match(/(\d+)\s*(day|week|month|hour)s?\s+(?:ago|now|duration)/i);
+    if (durMatch) {
+      var n = parseInt(durMatch[1]);
+      var unit = durMatch[2].toLowerCase();
+      if (unit.indexOf('week') === 0)  n *= 7;
+      if (unit.indexOf('month') === 0) n *= 30;
+      if (unit.indexOf('hour') === 0)  n = Math.max(1, Math.round(n / 24));
+      duration_days = Math.min(365, n);
+    }
+    if (!durMatch) {
+      if (/since\s+(this\s+)?morning|since\s+today|started\s+today/i.test(text)) duration_days = 1;
+      if (/since\s+yesterday/i.test(text)) duration_days = 2;
+    }
+
+    // Chronic conditions
+    var conditionKeywords = [
+      'diabetes', 'hypertension', 'heart disease', 'asthma', 'copd',
+      'kidney disease', 'liver disease', 'cancer', 'hiv', 'aids',
+      'epilepsy', 'stroke', 'obesity', 'anemia', 'tuberculosis',
+      'malaria', 'arthritis', 'thyroid', 'high blood pressure'
+    ];
+    var lower = text.toLowerCase();
+    conditionKeywords.forEach(function(c) {
+      if (lower.indexOf(c) !== -1) {
+        var normalized = c === 'high blood pressure' ? 'hypertension' : c;
+        if (chronic_conditions.indexOf(normalized) === -1) chronic_conditions.push(normalized);
+      }
+    });
+
+    return { age: age, duration_days: duration_days, chronic_conditions: chronic_conditions };
+  }
+
+  // Render results
+  function renderResults(d, rawText) {
+    var risk = d.prediction;
+    var conf = Math.round((d.confidence || 0) * 100);
+
+    document.getElementById('emergencyBanner').style.display = d.emergency_flag ? 'flex' : 'none';
+
+    var badge = document.getElementById('riskBadge');
+    badge.className = 'risk-badge ' + risk;
+    document.getElementById('riskText').textContent = risk + ' RISK';
+
+    document.getElementById('confPct').textContent = conf + '%';
+    setTimeout(function() { document.getElementById('confBar').style.width = conf + '%'; }, 50);
+
+    document.getElementById('explanationText').textContent = d.explanation || 'No explanation available.';
+
+    var chips = document.getElementById('ruleChips');
+    chips.innerHTML = '';
+    if (d.rules_triggered && d.rules_triggered.length > 0) {
+      d.rules_triggered.forEach(function(r) {
+        var chip = document.createElement('span');
+        chip.className = 'rule-chip';
+        chip.textContent = r.replace(/_/g, ' ');
+        chips.appendChild(chip);
+      });
+    } else {
+      chips.innerHTML = '<span class="no-rules">No rules triggered</span>';
+    }
+
+    document.getElementById('reqId').textContent      = d.request_id || '';
+    document.getElementById('modelVer').textContent    = d.model_version || '-';
+    document.getElementById('escalated').textContent   = d.escalated ? 'Yes' : 'No';
+    document.getElementById('timestamp').textContent   = d.timestamp ? new Date(d.timestamp).toLocaleString() : '-';
+
+    var resultsEl = document.getElementById('results');
+    resultsEl.style.display = 'block';
+    resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Enable chat with triage context
+    triageContext = {
+      risk_level:    d.prediction,
+      symptoms_text: rawText,
+      explanation:   d.explanation,
+      confidence:    d.confidence,
+      rules:         d.rules_triggered
+    };
+    chatHistory = [];
+    document.getElementById('chatMessages').innerHTML = '';
+    document.getElementById('chatSection').style.display = 'block';
+
+    addChatBubble('assistant',
+      'I have completed your triage assessment (' + risk + ' risk). ' +
+      'Feel free to ask me anything about your results, symptoms, or next steps.'
+    );
+  }
+
+  // CHAT
+  var chatInput = document.getElementById('chatInput');
+  var chatSend  = document.getElementById('chatSend');
+
+  chatSend.addEventListener('click', sendChat);
+  chatInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+  });
+
+  function sendChat() {
+    var msg = chatInput.value.trim();
+    if (!msg) return;
+
+    addChatBubble('user', msg);
+    chatHistory.push({ role: 'user', content: msg });
+    chatInput.value = '';
+    chatSend.disabled = true;
+
+    var typingEl = addChatBubble('assistant', 'Thinking...', true);
+
+    fetch(API_BASE + '/api/v1/triage/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: msg,
+        history: chatHistory,
+        triage_context: triageContext,
+        language: 'en'
+      })
+    })
+    .then(function(resp) {
+      if (!resp.ok) {
+        return resp.json().catch(function() { return { detail: resp.statusText }; }).then(function(err) {
+          throw new Error(err.detail || 'HTTP ' + resp.status);
+        });
+      }
+      return resp.json();
+    })
+    .then(function(data) {
+      typingEl.remove();
+      addChatBubble('assistant', data.reply);
+      chatHistory.push({ role: 'assistant', content: data.reply });
+    })
+    .catch(function(err) {
+      typingEl.remove();
+      addChatBubble('assistant', 'Error: ' + err.message);
+    })
+    .finally(function() {
+      chatSend.disabled = false;
+      chatInput.focus();
+    });
+  }
+
+  function addChatBubble(role, text, isTyping) {
+    var box = document.getElementById('chatMessages');
+    var el = document.createElement('div');
+    el.className = 'chat-bubble ' + role + (isTyping ? ' typing' : '');
+    el.textContent = text;
+    box.appendChild(el);
+    box.scrollTop = box.scrollHeight;
+    return el;
+  }
+
+  // HELPERS
+  function setLoading(on) {
+    var btn = document.getElementById('submitBtn');
+    btn.disabled = on;
+    if (on) btn.classList.add('loading'); else btn.classList.remove('loading');
+    btn.querySelector('.btn-text').textContent = on ? 'Analyzing...' : 'Analyze Symptoms';
+  }
+
+  function showErr(msg) {
+    var el = document.getElementById('formError');
+    el.textContent = 'Warning: ' + msg;
+    el.style.display = 'block';
+  }
+
+  // IMAGE ANALYSIS
+  var selectedImageFile = null;
+
+  function showPreview(file) {
+    if (!file || file.type.indexOf('image/') !== 0) { showImgErr('Please select a valid image file.'); return; }
+    if (file.size > 20 * 1024 * 1024) { showImgErr('Image is too large (max 20 MB).'); return; }
+    selectedImageFile = file;
+    document.getElementById('previewImg').src = URL.createObjectURL(file);
+    document.getElementById('previewFilename').textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+    document.getElementById('previewWrap').style.display = 'block';
+    document.getElementById('imgError').style.display = 'none';
+  }
+
+  document.getElementById('imgFileInput').addEventListener('change', function(e) { if (e.target.files[0]) showPreview(e.target.files[0]); });
+  document.getElementById('cameraInput').addEventListener('change', function(e) { if (e.target.files[0]) showPreview(e.target.files[0]); });
+
+  var zone = document.getElementById('uploadZone');
+  zone.addEventListener('dragover',  function(e) { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', function() { zone.classList.remove('drag-over'); });
+  zone.addEventListener('drop', function(e) { e.preventDefault(); zone.classList.remove('drag-over'); if (e.dataTransfer.files[0]) showPreview(e.dataTransfer.files[0]); });
+
+  document.getElementById('clearImg').addEventListener('click', function() {
+    selectedImageFile = null;
+    document.getElementById('previewWrap').style.display = 'none';
+    document.getElementById('previewImg').src = '';
+    document.getElementById('imgFileInput').value = '';
+    document.getElementById('cameraInput').value = '';
+  });
+
+  document.getElementById('imageTypeBtns').querySelectorAll('.img-type-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.img-type-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById('imgQuestion').value = btn.getAttribute('data-q');
+    });
+  });
+
+  document.getElementById('analyzeBtn').addEventListener('click', function() {
+    document.getElementById('imgError').style.display = 'none';
+    if (!selectedImageFile) { showImgErr('Please select or capture an image first.'); return; }
+
+    var question = document.getElementById('imgQuestion').value.trim() || 'What do you observe in this medical image?';
+
+    setImgLoading(true);
+    document.getElementById('imageResults').style.display = 'none';
+
+    var fd = new FormData();
+    fd.append('image', selectedImageFile, selectedImageFile.name);
+    fd.append('question', question);
+    fd.append('language', 'en');
+
+    fetch(API_BASE + '/api/v1/triage/analyze-image', { method: 'POST', body: fd })
+    .then(function(resp) {
+      if (!resp.ok) { return resp.json().catch(function() { return { detail: resp.statusText }; }).then(function(err) { throw new Error(err.detail || 'HTTP ' + resp.status); }); }
+      return resp.json();
+    })
+    .then(function(data) {
+      document.getElementById('analysisText').textContent = data.analysis || 'No analysis returned.';
+      if (data.model_name) {
+        document.getElementById('imgModelName').textContent = data.model_name;
+        document.getElementById('imgModelBadge').style.display = 'inline-flex';
+      }
+      var res = document.getElementById('imageResults');
+      res.style.display = 'block';
+      res.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    })
+    .catch(function(err) {
+      showImgErr('Image analysis failed: ' + err.message);
+    })
+    .finally(function() {
+      setImgLoading(false);
+    });
+  });
+
+  function setImgLoading(on) {
+    var btn = document.getElementById('analyzeBtn');
+    btn.disabled = on;
+    if (on) btn.classList.add('loading'); else btn.classList.remove('loading');
+    btn.querySelector('.btn-text').textContent = on ? 'Analyzing Image...' : 'Analyze Image';
+  }
+
+  function showImgErr(msg) {
+    var el = document.getElementById('imgError');
+    el.textContent = 'Warning: ' + msg;
+    el.style.display = 'block';
+  }
+</script>
+
+</body>
+</html>

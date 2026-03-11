@@ -89,7 +89,12 @@ export default function ClarifyingQuestionsScreen({ navigation, route }) {
             <Button label="Back" variant="outline" onPress={() => setStep(s => s - 1)} style={{ flex: 1 }} />
           )}
           <Button label={isLast ? 'Get Results' : 'Next'}
-            onPress={() => isLast ? navigation.navigate('SymptomResults', { answers }) : setStep(s => s + 1)}
+            onPress={() => isLast ? navigation.navigate('SymptomResults', {
+              answers,
+              symptoms: route.params?.symptoms || [],
+              text: route.params?.text || '',
+              duration: route.params?.duration || 'Today',
+            }) : setStep(s => s + 1)}
             disabled={!canNext} style={{ flex: 1 }} />
         </View>
       </ScrollView>

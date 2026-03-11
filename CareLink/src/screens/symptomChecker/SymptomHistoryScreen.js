@@ -1,42 +1,82 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Badge, SearchBar } from '../../components/common';
 import { useLanguage } from '../../i18n';
+import { useAuth } from '../../context/AuthContext';
+import { getSymptomChecks } from '../../services/historyService';
 
-const history = [
-  { id: '1', date: '2025-01-15', symptoms: ['Fever', 'Headache', 'Body aches'], result: 'Viral Fever', severity: 'Moderate', match: 85 },
-  { id: '2', date: '2025-01-02', symptoms: ['Cough', 'Sore throat'], result: 'Common Cold', severity: 'Mild', match: 72 },
-  { id: '3', date: '2024-12-20', symptoms: ['Stomach pain', 'Nausea'], result: 'Gastritis', severity: 'Moderate', match: 68 },
-  { id: '4', date: '2024-11-10', symptoms: ['Joint pain', 'Fatigue'], result: 'Seasonal Flu', severity: 'Mild', match: 55 },
-];
+const sevMap = {
+  LOW:    { label: 'Low Risk',    variant: 'success' },
+  MEDIUM: { label: 'Medium Risk', variant: 'warning' },
+  HIGH:   { label: 'High Risk',   variant: 'error' },
+};
 
 export default function SymptomHistoryScreen({ navigation }) {
   const { t } = useLanguage();
+  const { profile } = useAuth();
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const filtered = history.filter(h =>
-    h.result.toLowerCase().includes(search.toLowerCase()) ||
-    h.symptoms.join(' ').toLowerCase().includes(search.toLowerCase())
-  );
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity style={[styles.card, Shadows.soft]} activeOpacity={0.7} onPress={() => {}}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.date}>{new Date(item.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</Text>
-        <Badge label={item.severity} variant={item.severity === 'Mild' ? 'success' : 'warning'} size="sm" />
-      </View>
-      <Text style={styles.result}>{item.result}</Text>
-      <Text style={styles.matchPct}>{item.match}% match</Text>
-      <View style={styles.chipRow}>
-        {item.symptoms.map((s, i) => (
-          <View key={i} style={styles.chip}>
-            <Text style={styles.chipText}>{s}</Text>
+  const load = useCallback(async () => {
+    if (!profile?.id) { setLoading(false); return; }
+    try {
+      const rows = await getSymptomChecks(profile.id, 50);
+      setHistory(rows || []);
+    } catch (e) {
+      console.warn('[SymptomHistory] load failed:', e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [profile?.id]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const filtered = history.filter(h => {
+    const q = search.toLowerCase();
+    if (!q) return true;
+    return (
+      (h.symptoms_text || '').toLowerCase().includes(q) ||
+      (h.prediction || '').toLowerCase().includes(q) ||
+      (h.symptoms_selected || []).join(' ').toLowerCase().includes(q)
+    );
+  });
+
+  const renderItem = ({ item }) => {
+    const sev = sevMap[item.prediction] || sevMap.MEDIUM;
+    const confidence = Math.round((item.confidence || 0) * 100);
+    const symptoms = item.symptoms_selected?.length
+      ? item.symptoms_selected
+      : (item.symptoms_text || '').split(/[.,;]+/).map(s => s.trim()).filter(Boolean).slice(0, 5);
+
+    return (
+      <TouchableOpacity style={[styles.card, Shadows.soft]} activeOpacity={0.7}>
+        <View style={styles.cardHeader}>
+          <Text style={styles.date}>
+            {new Date(item.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+          </Text>
+          <Badge label={sev.label} variant={sev.variant} size="sm" />
+        </View>
+        <Text style={styles.result}>{item.prediction} Risk</Text>
+        <Text style={styles.matchPct}>{confidence}% confidence</Text>
+        <View style={styles.chipRow}>
+          {symptoms.map((s, i) => (
+            <View key={i} style={styles.chip}>
+              <Text style={styles.chipText}>{s}</Text>
+            </View>
+          ))}
+        </View>
+        {item.emergency_flag && (
+          <View style={styles.emergencyTag}>
+            <Ionicons name="alert-circle" size={14} color={Colors.error} />
+            <Text style={styles.emergencyTagText}>Emergency flagged</Text>
           </View>
-        ))}
-      </View>
-    </TouchableOpacity>
-  );
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -44,15 +84,21 @@ export default function SymptomHistoryScreen({ navigation }) {
       <View style={{ paddingHorizontal: Spacing.base, paddingTop: Spacing.md }}>
         <SearchBar value={search} onChangeText={setSearch} placeholder="Search history..." />
       </View>
-      <FlatList data={filtered} keyExtractor={i => i.id} renderItem={renderItem}
-        contentContainerStyle={styles.list}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Ionicons name="document-text-outline" size={48} color={Colors.textMuted} />
-            <Text style={styles.emptyText}>No symptom checks found</Text>
-          </View>
-        }
-      />
+      {loading ? (
+        <View style={styles.empty}>
+          <ActivityIndicator size="large" color={Colors.accent} />
+        </View>
+      ) : (
+        <FlatList data={filtered} keyExtractor={i => i.id} renderItem={renderItem}
+          contentContainerStyle={styles.list}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Ionicons name="document-text-outline" size={48} color={Colors.textMuted} />
+              <Text style={styles.emptyText}>No symptom checks found</Text>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 }
@@ -70,6 +116,8 @@ const styles = StyleSheet.create({
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.xs, marginTop: Spacing.sm },
   chip: { backgroundColor: Colors.bgSecondary, borderRadius: Radius.full, paddingHorizontal: Spacing.sm, paddingVertical: 3 },
   chipText: { fontSize: FontSizes.xs, color: Colors.textSecondary },
+  emergencyTag: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: Spacing.sm },
+  emergencyTagText: { fontSize: FontSizes.xs, color: Colors.error, fontWeight: FontWeights.medium },
   empty: { alignItems: 'center', paddingTop: 80 },
   emptyText: { fontSize: FontSizes.md, color: Colors.textMuted, marginTop: Spacing.md },
 });
