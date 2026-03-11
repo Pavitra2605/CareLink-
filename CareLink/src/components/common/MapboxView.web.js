@@ -31,7 +31,7 @@ export default function MapboxView({
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #f0eff8; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #F5F4F0; }
     #map { width: 100%; height: 100%; }
     .user-dot {
       width: 18px; height: 18px; border-radius: 50%;

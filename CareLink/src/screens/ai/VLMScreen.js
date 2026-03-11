@@ -165,7 +165,7 @@ export default function VLMScreen({ navigation }) {
           </Text>
           <TouchableOpacity style={styles.permBtn} onPress={requestPermission}>
             <LinearGradient
-              colors={['#11998e', '#38ef7d']}
+              colors={['#C4682A', '#E8843A']}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={styles.permBtnInner}
             >
@@ -263,7 +263,7 @@ export default function VLMScreen({ navigation }) {
               disabled={analysing}
             >
               <LinearGradient
-                colors={analysing ? [Colors.textMuted, Colors.textMuted] : ['#11998e', '#38ef7d']}
+                colors={analysing ? [Colors.textMuted, Colors.textMuted] : ['#C4682A', '#E8843A']}
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                 style={styles.analyseBtnInner}
               >
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
   },
   corner: {
     position: 'absolute', width: CORNER, height: CORNER,
-    borderColor: '#38ef7d', borderRadius: 2,
+    borderColor: '#E8843A', borderRadius: 2,
   },
   cornerTL: { top: 16, left: 16, borderTopWidth: BORDER, borderLeftWidth: BORDER },
   cornerTR: { top: 16, right: 16, borderTopWidth: BORDER, borderRightWidth: BORDER },
@@ -389,10 +389,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center', gap: Spacing.sm,
   },
   scanLine: {
-    width: '65%', height: 2, backgroundColor: '#38ef7d',
-    shadowColor: '#38ef7d', shadowOpacity: 0.9, shadowRadius: 8,
+    width: '65%', height: 2, backgroundColor: '#E8843A',
+    shadowColor: '#E8843A', shadowOpacity: 0.9, shadowRadius: 8,
   },
-  scanningText: { color: '#38ef7d', fontSize: FontSizes.md, fontWeight: FontWeights.semiBold },
+  scanningText: { color: '#E8843A', fontSize: FontSizes.md, fontWeight: FontWeights.semiBold },
   scanDoneText: { color: '#fff', fontSize: FontSizes.md, fontWeight: FontWeights.semiBold },
   aimText: {
     color: 'rgba(255,255,255,0.55)', fontSize: FontSizes.sm,

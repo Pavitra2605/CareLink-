@@ -56,7 +56,7 @@ export default function HomeScreen({ navigation }) {
 
         {/* Emergency Banner */}
         <TouchableOpacity onPress={() => navigation.navigate('EmergencyTab', { screen: 'EmergencyHome' })} activeOpacity={0.85}>
-          <LinearGradient colors={['#FF6B6B', '#EE5A5A']} style={[styles.emergencyBanner, Shadows.medium]}>
+          <LinearGradient colors={['#C4682A', '#8B4A1E']} style={[styles.emergencyBanner, Shadows.medium]}>
             <View style={styles.emerIconWrap}>
               <Ionicons name="pulse" size={28} color={Colors.white} />
             </View>

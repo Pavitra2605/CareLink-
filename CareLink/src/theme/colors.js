@@ -1,51 +1,65 @@
-// CareLink Design Tokens — sourced from color-schemes.md
+// CareLink Design Tokens — Warm Indian-inspired AI platform palette
 export const Colors = {
   // Backgrounds
-  bgPrimary: '#F0EFF8',
-  bgSecondary: '#E8E8F5',
+  bgPrimary: '#F5F4F0',
+  bgSecondary: '#F0EDE6',
   surface: '#FFFFFF',
-  surfaceHover: '#F7F7FC',
+  surfaceHover: '#F5F2ED',
 
-  // Amber / Warm Accent
-  amberLight: '#F2B866',
-  amberMid: '#E8A857',
-  amberDark: '#C97D3A',
-  amberGlow: 'rgba(232,168,87,0.25)',
+  // Saffron / Warm Accent
+  amberLight: '#F0A050',
+  amberMid: '#E8843A',
+  amberDark: '#C4682A',
+  amberGlow: 'rgba(232,132,58,0.25)',
 
   // Text
   textPrimary: '#1A1A1A',
-  textSecondary: '#4A4A4A',
-  textMuted: '#8A8A9A',
+  textSecondary: '#666666',
+  textMuted: '#999999',
   textInverted: '#FFFFFF',
 
-  // Accent / Interactive (Indigo-Purple)
-  accent: '#6B6BCC',
-  accentHover: '#5555BB',
-  accentLight: '#EEEEF9',
-  accentMuted: 'rgba(107,107,204,0.15)',
+  // Accent / Interactive (Lavender-Indigo)
+  accent: '#5B5A9E',
+  accentHover: '#4A498D',
+  accentLight: '#EEEDF8',
+  accentMuted: 'rgba(91,90,158,0.15)',
 
   // Buttons
-  btnPrimaryBg: '#1C1C1E',
+  btnPrimaryBg: '#1A1A1A',
   btnPrimaryText: '#FFFFFF',
   btnSecondaryBg: '#FFFFFF',
-  btnSecondaryBorder: '#1C1C1E',
-  btnSecondaryText: '#1C1C1E',
+  btnSecondaryBorder: '#1A1A1A',
+  btnSecondaryText: '#1A1A1A',
+
+  // Tags / Pills
+  tagBg: '#EEEDF8',
+  tagBorder: '#C8C4E8',
+  tagText: '#5B5A9E',
 
   // Borders & Dividers
-  border: '#DDDDE8',
-  borderFocus: '#6B6BCC',
-  borderStrong: '#C4C4D4',
+  border: '#E0DDD6',
+  borderFocus: '#5B5A9E',
+  borderStrong: '#C8C4E8',
 
   // Status
   success: '#2E9E6B',
-  warning: '#E8A857',
+  warning: '#E8843A',
   error: '#D94F4F',
-  info: '#6B6BCC',
+  info: '#5B5A9E',
 
   // Severity
   severityLow: '#2E9E6B',
-  severityMedium: '#E8A857',
+  severityMedium: '#E8843A',
   severityHigh: '#D94F4F',
+
+  // Navigation
+  navText: '#2A2A2A',
+  logo: '#0A0A0A',
+  partnerTint: '#AAAAAA',
+
+  // Banner / Top Bar
+  bannerStart: '#C4682A',
+  bannerEnd: '#8B4A1E',
 
   // Misc
   overlay: 'rgba(0,0,0,0.4)',
@@ -70,7 +84,7 @@ export const Shadows = {
     elevation: 4,
   },
   amber: {
-    shadowColor: '#C97D3A',
+    shadowColor: '#C4682A',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.18,
     shadowRadius: 32,
@@ -79,7 +93,16 @@ export const Shadows = {
 };
 
 export const Gradients = {
-  amber: ['#F2B866', '#C97D3A'],
-  bg: ['#F0EFF8', '#E8E8F5'],
-  accent: ['#6B6BCC', '#5555BB'],
+  // Hero: soft lavender → warm cream → light peach
+  hero: ['#D6D4F0', '#F0EDE6', '#F5E8D8'],
+  // Accent cards/banners: orange → amber → soft lavender
+  accent: ['#E8843A', '#F0A050', '#C8C4E8'],
+  // Card accent visual: orange → lavender diagonal
+  cardAccent: ['#E8853A', '#B8B4E0'],
+  // Banner/top bar: deep saffron → burnt amber
+  banner: ['#C4682A', '#8B4A1E'],
+  // Background gradient (auth screens etc.)
+  bg: ['#F5F4F0', '#F0EDE6', '#F5E8D8'],
+  // Primary (used in hero sections): same as banner
+  primary: ['#C4682A', '#8B4A1E'],
 };

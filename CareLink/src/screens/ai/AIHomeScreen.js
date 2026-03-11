@@ -39,7 +39,7 @@ export default function AIHomeScreen({ navigation }) {
           onPress={() => navigation.navigate('AIChat')}
         >
           <LinearGradient
-            colors={['#6C63FF', '#4A41CC']}
+            colors={['#C4682A', '#8B4A1E']}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
             style={[styles.mainCard, Shadows.medium]}
           >
@@ -64,7 +64,7 @@ export default function AIHomeScreen({ navigation }) {
           onPress={() => navigation.navigate('VLM')}
         >
           <LinearGradient
-            colors={['#11998e', '#38ef7d']}
+            colors={['#E8843A', '#F0A050']}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
             style={[styles.mainCard, Shadows.medium]}
           >

@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
   headerCenter: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   headerAvatar: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: '#6C63FF', justifyContent: 'center', alignItems: 'center',
+    backgroundColor: '#C4682A', justifyContent: 'center', alignItems: 'center',
   },
   headerTitle: { fontSize: FontSizes.md, fontWeight: FontWeights.semiBold, color: Colors.textPrimary },
   headerStatus: { fontSize: FontSizes.xs, color: Colors.success, marginTop: 1 },
@@ -240,13 +240,13 @@ const styles = StyleSheet.create({
   msgRowUser: { flexDirection: 'row-reverse' },
   aiAvatar: {
     width: 28, height: 28, borderRadius: 14,
-    backgroundColor: '#6C63FF', justifyContent: 'center', alignItems: 'center', flexShrink: 0,
+    backgroundColor: '#C4682A', justifyContent: 'center', alignItems: 'center', flexShrink: 0,
   },
   bubble: {
     maxWidth: '78%', borderRadius: Radius.lg, padding: Spacing.md,
   },
   bubbleAI: { backgroundColor: Colors.surface, borderBottomLeftRadius: 4 },
-  bubbleUser: { backgroundColor: '#6C63FF', borderBottomRightRadius: 4 },
+  bubbleUser: { backgroundColor: '#E8843A', borderBottomRightRadius: 4 },
   bubbleText: { fontSize: FontSizes.md, color: Colors.textPrimary, lineHeight: 20 },
   bubbleTextUser: { color: '#fff' },
   bubbleTime: { fontSize: 10, color: Colors.textMuted, marginTop: 4, alignSelf: 'flex-end' },
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
   },
   sendBtn: {
     width: 40, height: 40, borderRadius: 20,
-    backgroundColor: '#6C63FF', justifyContent: 'center', alignItems: 'center',
+    backgroundColor: '#C4682A', justifyContent: 'center', alignItems: 'center',
   },
   sendBtnDisabled: { backgroundColor: Colors.textMuted },
 });
