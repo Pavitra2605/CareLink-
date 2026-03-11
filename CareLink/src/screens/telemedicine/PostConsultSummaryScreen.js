@@ -74,9 +74,9 @@ export default function PostConsultSummaryScreen({ navigation, route }) {
         </Card>
 
         <View style={styles.actions}>
-          <Button title="Find Medicine Nearby" onPress={() => navigation.navigate('MedicineSearch')}
+          <Button title="Find Medicine Nearby" onPress={() => navigation.navigate('MedicineTab', { screen: 'MedicineSearch' })}
             size="lg" variant="amber" icon={<Ionicons name="medkit" size={20} color={Colors.white} />} />
-          <Button title="Go to Home" onPress={() => navigation.navigate('MainTabs')}
+          <Button title="Go to Home" onPress={() => navigation.navigate('HomeTab')}
             size="lg" variant="outline" style={{ marginTop: Spacing.md }} />
         </View>
 

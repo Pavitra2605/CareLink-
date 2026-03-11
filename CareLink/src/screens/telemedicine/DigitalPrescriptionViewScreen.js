@@ -104,7 +104,7 @@ export default function DigitalPrescriptionViewScreen({ navigation, route }) {
             onPress={() => {}} />
           <Button title="Find Medicine Nearby" variant="amber" size="lg"
             icon={<Ionicons name="location-outline" size={18} color={Colors.white} />}
-            onPress={() => navigation.navigate('MedicineSearch')}
+            onPress={() => navigation.navigate('MedicineTab', { screen: 'MedicineSearch' })}
             style={{ marginTop: Spacing.md }} />
         </View>
 
