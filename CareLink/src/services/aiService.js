@@ -9,8 +9,6 @@
  *   GET  /health                        – health check
  */
 
-import { Platform } from 'react-native';
-
 const AI_BASE_URL =
   process.env.EXPO_PUBLIC_AI_SERVICE_URL || 'http://localhost:8000';
 
@@ -116,34 +114,46 @@ export async function analyzeImage({
   const formData = new FormData();
 
   // React Native's FormData accepts { uri, name, type }
-  // Normalise the URI for Android — ensure file:// prefix
-  const uri = Platform.OS === 'android' && !imageUri.startsWith('file://')
-    ? `file://${imageUri}`
-    : imageUri;
+  // Pass the URI exactly as returned by expo-camera / expo-image-picker
+  console.log('[VLM] image URI:', imageUri);
 
   formData.append('image', {
-    uri,
+    uri: imageUri,
     name: 'photo.jpg',
     type: 'image/jpeg',
   });
   formData.append('question', question);
   formData.append('language', language);
 
-  // NOTE: On Android, using AbortController signal with FormData file uploads
-  // causes "Network request failed". Use a plain fetch without signal for uploads.
   const url = apiUrl('/api/v1/triage/analyze-image');
   console.log('[VLM] uploading to:', url);
-  const res = await fetch(url, {
-    method: 'POST',
-    body: formData,
-    // Do NOT set Content-Type — fetch sets multipart boundary automatically
-  });
 
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || `Image analysis failed (${res.status})`);
-  }
-  return res.json();
+  // Use XMLHttpRequest — more reliable than fetch for FormData file uploads on Android
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+    xhr.responseType = 'json';
+    xhr.timeout = VLM_TIMEOUT_MS;
+
+    xhr.onload = () => {
+      console.log('[VLM] XHR status:', xhr.status);
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(xhr.response);
+      } else {
+        const detail = xhr.response?.detail || `Image analysis failed (${xhr.status})`;
+        reject(new Error(detail));
+      }
+    };
+    xhr.onerror = () => {
+      console.warn('[VLM] XHR network error');
+      reject(new Error('Network request failed — ensure the AI service is running and you are on the same Wi-Fi.'));
+    };
+    xhr.ontimeout = () => {
+      reject(new Error('Image analysis timed out — the model may be warming up. Please try again.'));
+    };
+
+    xhr.send(formData);
+  });
 }
 
 // ─── Chat (follow-up conversation) ─────────────────────────
