@@ -47,6 +47,9 @@ export default function AIChatScreen({ navigation, route }) {
   const cameraRef = useRef(null);
   const [capturing, setCapturing] = useState(false);
 
+  // Pending image — staged for user to add a description before sending
+  const [pendingImage, setPendingImage] = useState(null);
+
   // ── Session setup ──
   useEffect(() => {
     if (!profile?.id) return;
@@ -145,26 +148,46 @@ export default function AIChatScreen({ navigation, route }) {
         console.warn('[VLM] No photo URI returned');
         return;
       }
-
-      // Close camera AFTER we have the URI
       setCameraOpen(false);
+      setPendingImage(photo.uri);
+    } catch (err) {
+      console.warn('[VLM] capture error:', err.message);
+    } finally {
+      setCapturing(false);
+    }
+  }, [capturing, cameraReady]);
 
-      // Show the photo as a user message immediately
-      const userMsg = makeMsg('user', '📷 Photo sent for analysis', photo.uri);
-      setMessages(prev => [...prev, userMsg]);
-      setThinking(true);
+  // ── Pick image from gallery ──
+  const handlePickImage = useCallback(async () => {
+    if (thinking) return;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.7,
+    });
+    if (result.canceled || !result.assets?.length) return;
+    setPendingImage(result.assets[0].uri);
+  }, [thinking]);
 
-      if (sessionId && profile?.id) {
-        saveChatMessage(sessionId, profile.id, 'user', '[Photo for VLM analysis]').catch(() => {});
-        if (!titleSetRef.current) {
-          titleSetRef.current = true;
-          updateSessionTitle(sessionId, 'Photo analysis').catch(() => {});
-        }
+  // ── Send image with user's query ──
+  const sendImageForAnalysis = useCallback(async (imageUri, userQuery) => {
+    const question = userQuery?.trim()
+      || 'Analyze this medical image. Identify any visible conditions, abnormalities, or areas of concern. For each finding, indicate its severity.';
+
+    const userMsg = makeMsg('user', question, imageUri);
+    setMessages(prev => [...prev, userMsg]);
+    setThinking(true);
+
+    if (sessionId && profile?.id) {
+      saveChatMessage(sessionId, profile.id, 'user', question).catch(() => {});
+      if (!titleSetRef.current) {
+        titleSetRef.current = true;
+        updateSessionTitle(sessionId, question.slice(0, 80)).catch(() => {});
       }
+    }
 
-      const question = 'Analyze this medical image. Identify any visible conditions, abnormalities, or areas of concern. For each finding, indicate its severity.';
+    try {
       console.log('[VLM] Calling analyzeImage API...');
-      const data = await analyzeImage({ imageUri: photo.uri, question, language: 'en' });
+      const data = await analyzeImage({ imageUri, question, language: 'en' });
       console.log('[VLM] API response received');
       const replyText = data.analysis || FALLBACK_REPLY;
       setMessages(prev => [...prev, makeMsg('assistant', replyText)]);
@@ -174,10 +197,9 @@ export default function AIChatScreen({ navigation, route }) {
           model: data.model_name, type: 'vlm',
         }).catch(() => {});
       }
-
       if (profile?.id) {
         saveVlmScan(profile.id, {
-          localUri: photo.uri, question, analysis: data.analysis,
+          localUri: imageUri, question, analysis: data.analysis,
           modelName: data.model_name, modelReady: data.model_ready,
         }).catch(() => {});
       }
@@ -191,65 +213,10 @@ export default function AIChatScreen({ navigation, route }) {
           : 'Image analysis failed. Please try again.';
       setMessages(prev => [...prev, makeMsg('assistant', errMsg)]);
     } finally {
-      setCapturing(false);
       setThinking(false);
       setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
     }
-  }, [capturing, cameraReady, sessionId, profile?.id]);
-
-  // ── Pick image from gallery ──
-  const handlePickImage = useCallback(async () => {
-    if (thinking) return;
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      quality: 0.7,
-    });
-    if (result.canceled || !result.assets?.length) return;
-
-    const uri = result.assets[0].uri;
-    const userMsg = makeMsg('user', '🖼️ Photo uploaded for analysis', uri);
-    setMessages(prev => [...prev, userMsg]);
-    setThinking(true);
-
-    if (sessionId && profile?.id) {
-      saveChatMessage(sessionId, profile.id, 'user', '[Uploaded photo for VLM analysis]').catch(() => {});
-      if (!titleSetRef.current) {
-        titleSetRef.current = true;
-        updateSessionTitle(sessionId, 'Photo analysis').catch(() => {});
-      }
-    }
-
-    try {
-      const question = 'Analyze this medical image. Identify any visible conditions, abnormalities, or areas of concern. For each finding, indicate its severity.';
-      const data = await analyzeImage({ imageUri: uri, question, language: 'en' });
-      const replyText = data.analysis || FALLBACK_REPLY;
-      setMessages(prev => [...prev, makeMsg('assistant', replyText)]);
-
-      if (sessionId && profile?.id) {
-        saveChatMessage(sessionId, profile.id, 'assistant', replyText, {
-          model: data.model_name, type: 'vlm',
-        }).catch(() => {});
-      }
-      if (profile?.id) {
-        saveVlmScan(profile.id, {
-          localUri: uri, question, analysis: data.analysis,
-          modelName: data.model_name, modelReady: data.model_ready,
-        }).catch(() => {});
-      }
-    } catch (err) {
-      console.warn('[VLM-Gallery] error:', err.message);
-      const isTimeout = err.message === 'Aborted' || err.message?.includes('timeout') || err.message?.includes('timed out');
-      const errMsg = isTimeout
-        ? 'Image analysis is taking a long time — the AI model may be warming up. Please try again in a moment.'
-        : err.message?.includes('Network')
-          ? 'Network error — make sure the AI service is running and you are on the same Wi-Fi.'
-          : 'Image analysis failed. Please try again.';
-      setMessages(prev => [...prev, makeMsg('assistant', errMsg)]);
-    } finally {
-      setThinking(false);
-      setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
-    }
-  }, [thinking, sessionId, profile?.id, messages]);
+  }, [sessionId, profile?.id]);
 
   // ── Render helpers ──
   const formatTime = (d) =>
@@ -308,35 +275,66 @@ export default function AIChatScreen({ navigation, route }) {
         }
       />
 
+      {/* Image preview strip */}
+      {pendingImage && (
+        <View style={styles.previewStrip}>
+          <Image source={{ uri: pendingImage }} style={styles.previewThumb} />
+          <Text style={styles.previewHint} numberOfLines={1}>
+            Add a description, then tap send
+          </Text>
+          <TouchableOpacity
+            onPress={() => setPendingImage(null)}
+            hitSlop={8}
+            style={styles.previewClose}
+          >
+            <Ionicons name="close-circle" size={22} color={Colors.textMuted} />
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Input */}
       <View style={[styles.inputBar, { paddingBottom: insets.bottom || Spacing.sm }]}>
-        <TouchableOpacity
-          style={styles.camBtn}
-          onPress={handlePickImage}
-          disabled={thinking}
-        >
-          <Ionicons name="image" size={22} color={thinking ? '#ccc' : '#C4682A'} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.camBtn}
-          onPress={handleCameraOpen}
-          disabled={thinking}
-        >
-          <Ionicons name="camera" size={22} color={thinking ? '#ccc' : '#C4682A'} />
-        </TouchableOpacity>
+        {!pendingImage && (
+          <>
+            <TouchableOpacity
+              style={styles.camBtn}
+              onPress={handlePickImage}
+              disabled={thinking}
+            >
+              <Ionicons name="image" size={22} color={thinking ? '#ccc' : '#C4682A'} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.camBtn}
+              onPress={handleCameraOpen}
+              disabled={thinking}
+            >
+              <Ionicons name="camera" size={22} color={thinking ? '#ccc' : '#C4682A'} />
+            </TouchableOpacity>
+          </>
+        )}
         <TextInput
           style={styles.input}
           value={input}
           onChangeText={setInput}
-          placeholder="Type a message..."
+          placeholder={pendingImage ? 'Describe what you want analysed...' : 'Type a message...'}
           placeholderTextColor={Colors.textMuted}
           multiline
           maxLength={500}
         />
         <TouchableOpacity
-          style={[styles.sendBtn, (!input.trim() || thinking) && styles.sendBtnOff]}
-          onPress={() => sendMessage()}
-          disabled={!input.trim() || thinking}
+          style={[styles.sendBtn, ((!input.trim() && !pendingImage) || thinking) && styles.sendBtnOff]}
+          onPress={() => {
+            if (pendingImage) {
+              const uri = pendingImage;
+              const query = input.trim();
+              setPendingImage(null);
+              setInput('');
+              sendImageForAnalysis(uri, query);
+            } else {
+              sendMessage();
+            }
+          }}
+          disabled={(!input.trim() && !pendingImage) || thinking}
         >
           <Ionicons name="send" size={20} color="#fff" />
         </TouchableOpacity>
@@ -428,6 +426,23 @@ const styles = StyleSheet.create({
   typingBubble: { paddingVertical: 14, paddingHorizontal: 20 },
   dots: { flexDirection: 'row', gap: 5 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.textMuted },
+
+  // Image preview strip
+  previewStrip: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingHorizontal: 12, paddingVertical: 8,
+    backgroundColor: '#fff',
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: Colors.border,
+  },
+  previewThumb: {
+    width: 48, height: 48, borderRadius: 8, backgroundColor: '#eee',
+  },
+  previewHint: {
+    flex: 1, fontSize: 13, color: Colors.textMuted, fontStyle: 'italic',
+  },
+  previewClose: {
+    padding: 4,
+  },
 
   // Input bar
   inputBar: {
