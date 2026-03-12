@@ -9,6 +9,8 @@
  *   GET  /health                        – health check
  */
 
+import { Platform } from 'react-native';
+
 const AI_BASE_URL =
   process.env.EXPO_PUBLIC_AI_SERVICE_URL || 'http://localhost:8000';
 
@@ -114,30 +116,28 @@ export async function analyzeImage({
   const formData = new FormData();
 
   // React Native's FormData accepts { uri, name, type }
-  const filename = imageUri.split('/').pop() || 'photo.jpg';
-  const ext = filename.split('.').pop()?.toLowerCase();
-  const mimeType =
-    ext === 'png' ? 'image/png' :
-    ext === 'webp' ? 'image/webp' :
-    'image/jpeg';
+  // Normalise the URI for Android — ensure file:// prefix
+  const uri = Platform.OS === 'android' && !imageUri.startsWith('file://')
+    ? `file://${imageUri}`
+    : imageUri;
 
   formData.append('image', {
-    uri: imageUri,
-    name: filename,
-    type: mimeType,
+    uri,
+    name: 'photo.jpg',
+    type: 'image/jpeg',
   });
   formData.append('question', question);
   formData.append('language', language);
 
-  const res = await fetchWithTimeout(
-    apiUrl('/api/v1/triage/analyze-image'),
-    {
-      method: 'POST',
-      body: formData,
-      // Do NOT set Content-Type — fetch will set multipart boundary automatically
-    },
-    VLM_TIMEOUT_MS,
-  );
+  // NOTE: On Android, using AbortController signal with FormData file uploads
+  // causes "Network request failed". Use a plain fetch without signal for uploads.
+  const url = apiUrl('/api/v1/triage/analyze-image');
+  console.log('[VLM] uploading to:', url);
+  const res = await fetch(url, {
+    method: 'POST',
+    body: formData,
+    // Do NOT set Content-Type — fetch sets multipart boundary automatically
+  });
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));

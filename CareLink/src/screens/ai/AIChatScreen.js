@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity,
-  KeyboardAvoidingView, Platform, Image, Modal,
+  KeyboardAvoidingView, Platform, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -40,9 +40,11 @@ export default function AIChatScreen({ navigation, route }) {
 
   // Camera
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
   const [facing, setFacing] = useState('back');
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef(null);
+  const [capturing, setCapturing] = useState(false);
 
   // ── Session setup ──
   useEffect(() => {
@@ -119,17 +121,34 @@ export default function AIChatScreen({ navigation, route }) {
       const res = await requestPermission();
       if (!res.granted) return;
     }
+    setCameraReady(false);
     setCameraOpen(true);
   }, [permission]);
 
   const handleCapture = useCallback(async () => {
-    if (!cameraRef.current) return;
+    if (capturing) return;
+    if (!cameraRef.current) {
+      console.warn('[VLM] cameraRef is null — camera not ready');
+      return;
+    }
+    if (!cameraReady) {
+      console.warn('[VLM] camera not ready yet');
+      return;
+    }
+    setCapturing(true);
     try {
-      const photo = await cameraRef.current.takePictureAsync({ quality: 0.7, skipProcessing: true });
-      if (!photo?.uri) return;
+      console.log('[VLM] Taking picture...');
+      const photo = await cameraRef.current.takePictureAsync({ quality: 0.7 });
+      console.log('[VLM] Photo captured:', photo?.uri ? 'URI ok' : 'URI missing');
+      if (!photo?.uri) {
+        console.warn('[VLM] No photo URI returned');
+        return;
+      }
+
+      // Close camera AFTER we have the URI
       setCameraOpen(false);
 
-      // Show the photo as a user message
+      // Show the photo as a user message immediately
       const userMsg = makeMsg('user', '📷 Photo sent for analysis', photo.uri);
       setMessages(prev => [...prev, userMsg]);
       setThinking(true);
@@ -143,7 +162,9 @@ export default function AIChatScreen({ navigation, route }) {
       }
 
       const question = 'Analyze this medical image. Identify any visible conditions, abnormalities, or areas of concern. For each finding, indicate its severity.';
+      console.log('[VLM] Calling analyzeImage API...');
       const data = await analyzeImage({ imageUri: photo.uri, question, language: 'en' });
+      console.log('[VLM] API response received');
       const replyText = data.analysis || FALLBACK_REPLY;
       setMessages(prev => [...prev, makeMsg('assistant', replyText)]);
 
@@ -169,10 +190,11 @@ export default function AIChatScreen({ navigation, route }) {
           : 'Image analysis failed. Please try again.';
       setMessages(prev => [...prev, makeMsg('assistant', errMsg)]);
     } finally {
+      setCapturing(false);
       setThinking(false);
       setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
     }
-  }, [sessionId, profile?.id, messages]);
+  }, [capturing, cameraReady, sessionId, profile?.id]);
 
   // ── Render helpers ──
   const formatTime = (d) =>
@@ -258,32 +280,53 @@ export default function AIChatScreen({ navigation, route }) {
         </TouchableOpacity>
       </View>
 
-      {/* Camera Modal */}
-      <Modal visible={cameraOpen} animationType="slide" statusBarTranslucent>
-        <View style={[styles.cameraWrap, { paddingTop: insets.top }]}>
-          <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} />
+      {/* Camera Overlay — absolute over the whole screen, avoids Modal ref issues on Android */}
+      {cameraOpen && (
+        <View style={[StyleSheet.absoluteFill, styles.cameraOverlay]}>
+          <CameraView
+            ref={cameraRef}
+            style={StyleSheet.absoluteFill}
+            facing={facing}
+            onCameraReady={() => setCameraReady(true)}
+          />
 
-          {/* Camera top bar */}
-          <View style={styles.cameraTopBar}>
-            <TouchableOpacity onPress={() => setCameraOpen(false)} style={styles.cameraCloseBtn}>
+          {/* Top bar */}
+          <View style={[styles.cameraTopBar, { paddingTop: insets.top + 8 }]}>
+            <TouchableOpacity
+              onPress={() => { setCameraOpen(false); setCameraReady(false); }}
+              style={styles.cameraCtrlBtn}
+            >
               <Ionicons name="close" size={28} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setFacing(f => (f === 'back' ? 'front' : 'back'))}
-              style={styles.cameraFlipBtn}
-            >
-              <Ionicons name="camera-reverse" size={24} color="#fff" />
-            </TouchableOpacity>
+            <View style={styles.cameraTopRight}>
+              {!cameraReady && (
+                <Text style={styles.cameraHint}>Initialising...</Text>
+              )}
+              <TouchableOpacity
+                onPress={() => setFacing(f => (f === 'back' ? 'front' : 'back'))}
+                style={styles.cameraCtrlBtn}
+              >
+                <Ionicons name="camera-reverse" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Shutter */}
-          <View style={styles.cameraBottom}>
-            <TouchableOpacity style={styles.shutter} onPress={handleCapture}>
-              <View style={styles.shutterInner} />
+          <View style={[styles.cameraBottom, { paddingBottom: insets.bottom + 24 }]}>
+            <Text style={styles.cameraHintBottom}>Point at the affected area and tap to capture</Text>
+            <TouchableOpacity
+              style={[styles.shutter, !cameraReady && { opacity: 0.4 }]}
+              onPress={handleCapture}
+              disabled={!cameraReady || capturing}
+            >
+              {capturing
+                ? <View style={[styles.shutterInner, { backgroundColor: '#E8843A' }]} />
+                : <View style={styles.shutterInner} />
+              }
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -347,21 +390,25 @@ const styles = StyleSheet.create({
   sendBtnOff: { backgroundColor: '#CCCCCC' },
 
   // Camera modal
-  cameraWrap: { flex: 1, backgroundColor: '#000' },
+  cameraOverlay: {
+    backgroundColor: '#000',
+    zIndex: 100,
+  },
   cameraTopBar: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 16, paddingTop: 12, zIndex: 10,
+    paddingHorizontal: 16, zIndex: 10,
   },
-  cameraCloseBtn: {
+  cameraTopRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  cameraCtrlBtn: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center',
   },
-  cameraFlipBtn: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', alignItems: 'center',
-  },
+  cameraHint: { color: 'rgba(255,255,255,0.7)', fontSize: 12 },
   cameraBottom: {
-    position: 'absolute', bottom: 40, left: 0, right: 0, alignItems: 'center',
+    position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'center', gap: 16,
+  },
+  cameraHintBottom: {
+    color: 'rgba(255,255,255,0.6)', fontSize: 13, textAlign: 'center', paddingHorizontal: 24,
   },
   shutter: {
     width: 72, height: 72, borderRadius: 36, borderWidth: 4, borderColor: '#fff',
