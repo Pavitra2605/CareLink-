@@ -102,7 +102,11 @@ export default function AIChatScreen({ navigation, route }) {
       }
     } catch (err) {
       console.warn('[AIChat] API error:', err.message);
-      setMessages(prev => [...prev, makeMsg('assistant', FALLBACK_REPLY)]);
+      const isTimeout = err.message === 'Aborted' || err.message?.includes('timeout') || err.message?.includes('timed out');
+      const errReply = isTimeout
+        ? 'The AI is still warming up or taking longer than usual. Please wait a moment and try again.'
+        : FALLBACK_REPLY;
+      setMessages(prev => [...prev, makeMsg('assistant', errReply)]);
     } finally {
       setThinking(false);
       setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
@@ -157,9 +161,12 @@ export default function AIChatScreen({ navigation, route }) {
       }
     } catch (err) {
       console.warn('[VLM] error:', err.message);
-      const errMsg = err.message?.includes('Network')
-        ? 'Network error — make sure the AI service is running and you are on the same Wi-Fi.'
-        : 'Image analysis failed. Please try again.';
+      const isTimeout = err.message === 'Aborted' || err.message?.includes('timeout') || err.message?.includes('timed out');
+      const errMsg = isTimeout
+        ? 'Image analysis is taking a long time — the AI model may be warming up. Please try again in a moment.'
+        : err.message?.includes('Network')
+          ? 'Network error — make sure the AI service is running and you are on the same Wi-Fi.'
+          : 'Image analysis failed. Please try again.';
       setMessages(prev => [...prev, makeMsg('assistant', errMsg)]);
     } finally {
       setThinking(false);

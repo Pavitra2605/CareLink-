@@ -52,13 +52,20 @@ class ExplanationService:
         t.start()
         logger.info(f"MedGemma GPU worker started | model={settings.LLM_HF_MODEL_ID}")
 
+    _GPU_DISPATCH_TIMEOUT = 270  # seconds — must be < any client-side timeout
+
     def _dispatch_to_gpu(self, fn, *args, **kwargs):
         """Submit *fn* to the GPU worker thread and block until it returns."""
         result_box: list = []
         done_event = threading.Event()
 
         self._gpu_queue.put((fn, args, kwargs, result_box, done_event))
-        done_event.wait()  # blocks caller until worker finishes
+        finished = done_event.wait(timeout=self._GPU_DISPATCH_TIMEOUT)
+        if not finished:
+            raise TimeoutError(
+                f"GPU inference timed out after {self._GPU_DISPATCH_TIMEOUT}s. "
+                "The model may be overloaded — please try again."
+            )
 
         if len(result_box) == 2 and result_box[0] == "__exc__":
             raise result_box[1]

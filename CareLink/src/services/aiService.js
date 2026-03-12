@@ -15,6 +15,11 @@ const AI_BASE_URL =
 // ─── Helpers ────────────────────────────────────────────────
 
 const DEFAULT_TIMEOUT_MS = 30_000;
+// MedGemma 4B-NF4 inference can take 30-120s on a mid-range GPU.
+// These generous timeouts prevent AbortController firing before the model responds.
+const CHAT_TIMEOUT_MS  = 180_000; // 3 min
+const VLM_TIMEOUT_MS   = 300_000; // 5 min
+const TRIAGE_TIMEOUT_MS = 120_000; // 2 min
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = DEFAULT_TIMEOUT_MS) {
   const controller = new AbortController();
@@ -80,7 +85,7 @@ export async function predictTriage({
         language,
       }),
     },
-    60_000, // VLM inference can be slow
+    TRIAGE_TIMEOUT_MS,
   );
 
   if (!res.ok) {
@@ -131,7 +136,7 @@ export async function analyzeImage({
       body: formData,
       // Do NOT set Content-Type — fetch will set multipart boundary automatically
     },
-    90_000, // VLM image inference is heavy
+    VLM_TIMEOUT_MS,
   );
 
   if (!res.ok) {
@@ -171,7 +176,7 @@ export async function chat({
         language,
       }),
     },
-    60_000,
+    CHAT_TIMEOUT_MS,
   );
 
   if (!res.ok) {
