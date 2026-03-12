@@ -6,6 +6,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import { Colors, FontSizes, FontWeights, Spacing } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../i18n';
@@ -29,7 +30,7 @@ export default function AIChatScreen({ navigation, route }) {
   const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const { profile } = useAuth();
-  const greetingText = `Hi${profile?.full_name ? ' ' + profile.full_name.split(' ')[0] : ''}! I'm your CareLink health assistant.\n\nYou can type a question or tap the camera icon to analyse a photo.`;
+  const greetingText = `Hi${profile?.full_name ? ' ' + profile.full_name.split(' ')[0] : ''}! I'm your CareLink health assistant.\n\nYou can type a question, tap 🖼️ to upload a photo, or tap 📷 to take one.`;
 
   const [messages, setMessages] = useState([makeMsg('assistant', greetingText)]);
   const [input, setInput] = useState('');
@@ -196,6 +197,60 @@ export default function AIChatScreen({ navigation, route }) {
     }
   }, [capturing, cameraReady, sessionId, profile?.id]);
 
+  // ── Pick image from gallery ──
+  const handlePickImage = useCallback(async () => {
+    if (thinking) return;
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.7,
+    });
+    if (result.canceled || !result.assets?.length) return;
+
+    const uri = result.assets[0].uri;
+    const userMsg = makeMsg('user', '🖼️ Photo uploaded for analysis', uri);
+    setMessages(prev => [...prev, userMsg]);
+    setThinking(true);
+
+    if (sessionId && profile?.id) {
+      saveChatMessage(sessionId, profile.id, 'user', '[Uploaded photo for VLM analysis]').catch(() => {});
+      if (!titleSetRef.current) {
+        titleSetRef.current = true;
+        updateSessionTitle(sessionId, 'Photo analysis').catch(() => {});
+      }
+    }
+
+    try {
+      const question = 'Analyze this medical image. Identify any visible conditions, abnormalities, or areas of concern. For each finding, indicate its severity.';
+      const data = await analyzeImage({ imageUri: uri, question, language: 'en' });
+      const replyText = data.analysis || FALLBACK_REPLY;
+      setMessages(prev => [...prev, makeMsg('assistant', replyText)]);
+
+      if (sessionId && profile?.id) {
+        saveChatMessage(sessionId, profile.id, 'assistant', replyText, {
+          model: data.model_name, type: 'vlm',
+        }).catch(() => {});
+      }
+      if (profile?.id) {
+        saveVlmScan(profile.id, {
+          localUri: uri, question, analysis: data.analysis,
+          modelName: data.model_name, modelReady: data.model_ready,
+        }).catch(() => {});
+      }
+    } catch (err) {
+      console.warn('[VLM-Gallery] error:', err.message);
+      const isTimeout = err.message === 'Aborted' || err.message?.includes('timeout') || err.message?.includes('timed out');
+      const errMsg = isTimeout
+        ? 'Image analysis is taking a long time — the AI model may be warming up. Please try again in a moment.'
+        : err.message?.includes('Network')
+          ? 'Network error — make sure the AI service is running and you are on the same Wi-Fi.'
+          : 'Image analysis failed. Please try again.';
+      setMessages(prev => [...prev, makeMsg('assistant', errMsg)]);
+    } finally {
+      setThinking(false);
+      setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
+    }
+  }, [thinking, sessionId, profile?.id, messages]);
+
   // ── Render helpers ──
   const formatTime = (d) =>
     d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -255,6 +310,13 @@ export default function AIChatScreen({ navigation, route }) {
 
       {/* Input */}
       <View style={[styles.inputBar, { paddingBottom: insets.bottom || Spacing.sm }]}>
+        <TouchableOpacity
+          style={styles.camBtn}
+          onPress={handlePickImage}
+          disabled={thinking}
+        >
+          <Ionicons name="image" size={22} color={thinking ? '#ccc' : '#C4682A'} />
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.camBtn}
           onPress={handleCameraOpen}
