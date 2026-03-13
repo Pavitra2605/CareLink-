@@ -1,31 +1,49 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius } from '../../theme';
 import { Header, SearchBar, DoctorCard, Badge } from '../../components/common';
 import { useLanguage } from '../../i18n';
-
-const MOCK_DOCTORS = [
-  { id: '1', name: 'Dr. Priya Sharma', specialty: 'General Physician', rating: '4.8', available: true, languages: 'Tamil, English', waitTime: '5 min' },
-  { id: '2', name: 'Dr. Rajesh Kumar', specialty: 'General Physician', rating: '4.6', available: true, languages: 'Hindi, English', waitTime: '12 min' },
-  { id: '3', name: 'Dr. Anitha S.', specialty: 'General Physician', rating: '4.9', available: false, languages: 'Tamil, Telugu', waitTime: '--' },
-  { id: '4', name: 'Dr. Mohammed A.', specialty: 'General Physician', rating: '4.5', available: true, languages: 'Hindi, English', waitTime: '8 min' },
-];
+import { getDoctors } from '../../services/careService';
 
 export default function DoctorsListScreen({ navigation, route }) {
   const { t } = useLanguage();
-  const specialty = route?.params?.specialty || 'General Physician';
+  const specialty = route?.params?.specialty || null;
   const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState('all'); // all | online | video | audio
+  const [filter, setFilter] = useState('all'); // all | online
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const filtered = MOCK_DOCTORS.filter((d) =>
-    d.name.toLowerCase().includes(search.toLowerCase()) &&
-    (filter === 'all' || (filter === 'online' && d.available))
-  );
+  const loadDoctors = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getDoctors({ specialty, search });
+      setDoctors(data);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [specialty, search]);
+
+  useEffect(() => {
+    const timer = setTimeout(loadDoctors, 300);
+    return () => clearTimeout(timer);
+  }, [loadDoctors]);
+
+  const filtered = filter === 'online'
+    ? doctors.filter((d) => d.is_available)
+    : doctors;
 
   return (
     <View style={styles.container}>
-      <Header title={t('telemedicine.doctorsList')} subtitle={`${filtered.length} doctors available`} onBack={() => navigation.goBack()} />
+      <Header
+        title={t('telemedicine.doctorsList')}
+        subtitle={loading ? 'Loading...' : `${filtered.length} doctors available`}
+        onBack={() => navigation.goBack()}
+      />
       <View style={styles.content}>
         <SearchBar value={search} onChangeText={setSearch} placeholder="Search doctor..." style={styles.search} />
 
@@ -40,22 +58,42 @@ export default function DoctorsListScreen({ navigation, route }) {
           ))}
         </View>
 
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <DoctorCard
-              name={item.name}
-              specialty={item.specialty}
-              rating={item.rating}
-              available={item.available}
-              languages={item.languages}
-              onPress={() => navigation.navigate('DoctorProfile', { doctor: item })}
-            />
-          )}
-          ListFooterComponent={<View style={{ height: 100 }} />}
-        />
+        {loading ? (
+          <View style={styles.center}>
+            <ActivityIndicator size="large" color={Colors.accent} />
+          </View>
+        ) : error ? (
+          <View style={styles.center}>
+            <Ionicons name="alert-circle-outline" size={48} color={Colors.error} />
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity onPress={loadDoctors} style={styles.retryBtn}>
+              <Text style={styles.retryText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <FlatList
+            data={filtered}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <DoctorCard
+                name={item.full_name}
+                specialty={item.specialty}
+                rating={String(item.rating || '0')}
+                available={item.is_available}
+                languages={item.bio ? '' : ''}
+                onPress={() => navigation.navigate('DoctorProfile', { doctor: item })}
+              />
+            )}
+            ListEmptyComponent={
+              <View style={styles.center}>
+                <Ionicons name="people-outline" size={48} color={Colors.textMuted} />
+                <Text style={styles.emptyText}>No doctors found</Text>
+              </View>
+            }
+            ListFooterComponent={<View style={{ height: 100 }} />}
+          />
+        )}
       </View>
     </View>
   );
@@ -73,4 +111,9 @@ const styles = StyleSheet.create({
   filterChipActive: { backgroundColor: Colors.accent, borderColor: Colors.accent },
   filterText: { fontSize: FontSizes.sm, color: Colors.textSecondary, fontWeight: FontWeights.medium },
   filterTextActive: { color: Colors.white },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80 },
+  emptyText: { fontSize: FontSizes.md, color: Colors.textMuted, marginTop: Spacing.md },
+  errorText: { fontSize: FontSizes.md, color: Colors.error, marginTop: Spacing.md, textAlign: 'center' },
+  retryBtn: { marginTop: Spacing.md, paddingHorizontal: Spacing.xl, paddingVertical: Spacing.sm, backgroundColor: Colors.accent, borderRadius: Radius.pill },
+  retryText: { color: Colors.white, fontWeight: FontWeights.semiBold },
 });

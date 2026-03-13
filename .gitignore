@@ -59,4 +59,5 @@ CareLink/setup_supabase.js
 
 CareLink/scripts/seed.js
 CareLink/supabase
+CareLink/.env
 web-portal/
