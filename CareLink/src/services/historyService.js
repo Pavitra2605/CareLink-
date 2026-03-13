@@ -15,7 +15,7 @@ import { supabase } from './supabase';
 // IMAGE UPLOAD
 // ─────────────────────────────────────────────────────────────
 
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { decode } from 'base64-arraybuffer';
 
 /**

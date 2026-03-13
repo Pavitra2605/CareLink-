@@ -4,7 +4,7 @@
  * appointments, consultations, prescriptions and orders.
  */
 import { supabase } from './supabase';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { decode } from 'base64-arraybuffer';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -230,7 +230,7 @@ export const uploadPrescriptionImage = async (localUri, patientId) => {
     'image/jpeg';
 
   const { data, error } = await supabase.storage
-    .from('prescription-images')
+    .from('medical-images')
     .upload(fileName, decode(base64), { // Decode base64 to arrayBuffer for Supabase Storage
       contentType: mimeType,
       upsert: false,
@@ -239,7 +239,7 @@ export const uploadPrescriptionImage = async (localUri, patientId) => {
   if (error) throw error;
 
   const { data: publicData } = supabase.storage
-    .from('prescription-images')
+    .from('medical-images')
     .getPublicUrl(data.path);
 
   return publicData.publicUrl;
