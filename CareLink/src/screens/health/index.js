@@ -12,3 +12,5 @@ export { default as DataAccessScreen } from './DataAccessScreen';
 export { default as AuditLogScreen } from './AuditLogScreen';
 export { default as ExportDataScreen } from './ExportDataScreen';
 export { default as SyncStatusScreen } from './SyncStatusScreen';
+export { default as PrescriptionVaultScreen } from './PrescriptionVaultScreen';
+export { default as AddPrescriptionScreen } from './AddPrescriptionScreen';

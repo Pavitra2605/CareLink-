@@ -14,6 +14,7 @@ const vitalCards = [
 ];
 
 const quickLinks = [
+  { label: 'Prescription Vault', icon: 'document-lock', screen: 'PrescriptionVault' },
   { label: 'Medical History', icon: 'folder-open', screen: 'MedicalHistory' },
   { label: 'Immunization', icon: 'shield-checkmark', screen: 'Immunization' },
   { label: 'Test Reports', icon: 'document-text', screen: 'TestReports' },

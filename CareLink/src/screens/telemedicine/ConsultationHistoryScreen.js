@@ -1,64 +1,97 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, FontSizes, FontWeights, Spacing, Radius, Shadows } from '../../theme';
 import { Header, Badge, SearchBar } from '../../components/common';
 import { useLanguage } from '../../i18n';
-
-const mockHistory = [
-  { id: '1', doctor: 'Dr. Priya Sharma', specialty: 'General Physician', date: '15 Jan 2025', mode: 'video', status: 'completed', diagnosis: 'Tension Headache' },
-  { id: '2', doctor: 'Dr. Arun Kumar', specialty: 'Pediatrics', date: '10 Jan 2025', mode: 'audio', status: 'completed', diagnosis: 'Common Cold' },
-  { id: '3', doctor: 'Dr. Lakshmi Devi', specialty: 'Dermatology', date: '02 Jan 2025', mode: 'text', status: 'completed', diagnosis: 'Skin Allergy' },
-  { id: '4', doctor: 'Dr. Rajesh Menon', specialty: 'Orthopedics', date: '20 Dec 2024', mode: 'video', status: 'cancelled', diagnosis: '' },
-  { id: '5', doctor: 'Dr. Priya Sharma', specialty: 'General Physician', date: '15 Dec 2024', mode: 'audio', status: 'completed', diagnosis: 'Fever / Viral' },
-];
+import { useAuth } from '../../context/AuthContext';
+import { getPatientConsultations } from '../../services/careService';
 
 const modeIcons = { video: 'videocam', audio: 'call', text: 'chatbubbles' };
 
+const formatDate = (iso) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
 export default function ConsultationHistoryScreen({ navigation }) {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const [consultations, setConsultations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
 
-  const filters = ['all', 'video', 'audio', 'text'];
-  const filtered = mockHistory.filter(c => {
-    if (filter !== 'all' && c.mode !== filter) return false;
-    if (search && !c.doctor.toLowerCase().includes(search.toLowerCase()) &&
-        !c.diagnosis.toLowerCase().includes(search.toLowerCase())) return false;
+  const load = useCallback(async () => {
+    if (!user?.id) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getPatientConsultations(user.id);
+      setConsultations(data);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const mode = (c) => c.appointment?.mode || 'video';
+  const filtered = consultations.filter((c) => {
+    const modeVal = mode(c);
+    if (filter !== 'all' && modeVal !== filter) return false;
+    const docName = c.doctor?.full_name?.toLowerCase() || '';
+    const diag = (c.diagnosis || '').toLowerCase();
+    if (search && !docName.includes(search.toLowerCase()) && !diag.includes(search.toLowerCase())) return false;
     return true;
   });
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity style={[styles.card, Shadows.soft]}
-      onPress={() => navigation.navigate('ConsultationDetail', { consultation: item })}>
-      <View style={styles.cardTop}>
-        <View style={[styles.modeIcon, { backgroundColor: item.mode === 'video' ? Colors.accent : item.mode === 'audio' ? Colors.success : Colors.amberMid }]}>
-          <Ionicons name={modeIcons[item.mode]} size={18} color={Colors.white} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.docName}>{item.doctor}</Text>
-          <Text style={styles.specText}>{item.specialty}</Text>
-        </View>
-        <Badge label={item.status === 'completed' ? 'Completed' : 'Cancelled'}
-          variant={item.status === 'completed' ? 'success' : 'error'} size="sm" />
-      </View>
-      <View style={styles.cardBottom}>
-        <View style={styles.metaItem}>
-          <Ionicons name="calendar-outline" size={14} color={Colors.textMuted} />
-          <Text style={styles.metaText}>{item.date}</Text>
-        </View>
-        {item.diagnosis ? (
-          <View style={styles.metaItem}>
-            <Ionicons name="medkit-outline" size={14} color={Colors.textMuted} />
-            <Text style={styles.metaText}>{item.diagnosis}</Text>
+  const renderItem = ({ item }) => {
+    const modeVal = mode(item);
+    const modeColor = modeVal === 'video' ? Colors.accent : modeVal === 'audio' ? Colors.success : Colors.amberMid;
+    const dateStr = formatDate(item.created_at);
+
+    return (
+      <TouchableOpacity
+        style={[styles.card, Shadows.soft]}
+        onPress={() => navigation.navigate('ConsultationDetail', { consultationId: item.id, consultation: item })}
+      >
+        <View style={styles.cardTop}>
+          <View style={[styles.modeIcon, { backgroundColor: modeColor }]}>
+            <Ionicons name={modeIcons[modeVal] || 'videocam'} size={18} color={Colors.white} />
           </View>
-        ) : null}
-      </View>
-      <View style={styles.cardChevron}>
-        <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
-      </View>
-    </TouchableOpacity>
-  );
+          <View style={{ flex: 1 }}>
+            <Text style={styles.docName}>{item.doctor?.full_name || 'Doctor'}</Text>
+            <Text style={styles.specText}>{item.doctor?.specialty || ''}</Text>
+          </View>
+          <Badge
+            label={item.status === 'completed' ? 'Completed' : item.status === 'cancelled' ? 'Cancelled' : 'Active'}
+            variant={item.status === 'completed' ? 'success' : item.status === 'cancelled' ? 'error' : 'info'}
+            size="sm"
+          />
+        </View>
+        <View style={styles.cardBottom}>
+          <View style={styles.metaItem}>
+            <Ionicons name="calendar-outline" size={14} color={Colors.textMuted} />
+            <Text style={styles.metaText}>{dateStr}</Text>
+          </View>
+          {item.diagnosis ? (
+            <View style={styles.metaItem}>
+              <Ionicons name="medkit-outline" size={14} color={Colors.textMuted} />
+              <Text style={styles.metaText}>{item.diagnosis}</Text>
+            </View>
+          ) : null}
+        </View>
+        <View style={styles.cardChevron}>
+          <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -67,12 +100,13 @@ export default function ConsultationHistoryScreen({ navigation }) {
         <SearchBar placeholder="Search doctor or diagnosis" value={search} onChangeText={setSearch} />
       </View>
 
-      {/* Filter Chips */}
       <View style={styles.filterRow}>
-        {filters.map(f => (
-          <TouchableOpacity key={f}
+        {['all', 'video', 'audio', 'text'].map((f) => (
+          <TouchableOpacity
+            key={f}
             style={[styles.filterChip, filter === f && styles.filterChipActive]}
-            onPress={() => setFilter(f)}>
+            onPress={() => setFilter(f)}
+          >
             <Text style={[styles.filterText, filter === f && { color: Colors.white }]}>
               {f.charAt(0).toUpperCase() + f.slice(1)}
             </Text>
@@ -80,18 +114,32 @@ export default function ConsultationHistoryScreen({ navigation }) {
         ))}
       </View>
 
-      <FlatList
-        data={filtered}
-        keyExtractor={i => i.id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.list}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Ionicons name="document-text-outline" size={48} color={Colors.textMuted} />
-            <Text style={styles.emptyText}>No consultations found</Text>
-          </View>
-        }
-      />
+      {loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={Colors.accent} />
+        </View>
+      ) : error ? (
+        <View style={styles.center}>
+          <Ionicons name="alert-circle-outline" size={48} color={Colors.error} />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity onPress={load} style={styles.retryBtn}>
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <FlatList
+          data={filtered}
+          keyExtractor={(i) => i.id}
+          renderItem={renderItem}
+          contentContainerStyle={styles.list}
+          ListEmptyComponent={
+            <View style={styles.center}>
+              <Ionicons name="document-text-outline" size={48} color={Colors.textMuted} />
+              <Text style={styles.emptyText}>No consultations found</Text>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 }
@@ -122,6 +170,9 @@ const styles = StyleSheet.create({
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   metaText: { fontSize: FontSizes.sm, color: Colors.textMuted },
   cardChevron: { position: 'absolute', right: Spacing.lg, top: '50%' },
-  empty: { alignItems: 'center', paddingTop: 80 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80 },
   emptyText: { fontSize: FontSizes.md, color: Colors.textMuted, marginTop: Spacing.md },
+  errorText: { fontSize: FontSizes.md, color: Colors.error, marginTop: Spacing.md, textAlign: 'center', paddingHorizontal: Spacing.xl },
+  retryBtn: { marginTop: Spacing.md, paddingHorizontal: Spacing.xl, paddingVertical: Spacing.sm, backgroundColor: Colors.accent, borderRadius: Radius.pill },
+  retryText: { color: Colors.white, fontWeight: FontWeights.semiBold },
 });
