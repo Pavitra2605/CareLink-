@@ -328,3 +328,184 @@ export const getPatientOrders = async (patientId) => {
   if (error) throw error;
   return data || [];
 };
+
+// ─── Prescription Vault ───────────────────────────────────────────────────────
+
+/**
+ * Upload a prescription image to the dedicated 'prescription-images' bucket.
+ * Returns the public URL of the uploaded file.
+ */
+export const uploadPrescriptionToVault = async (localUri, userId) => {
+  const ext = localUri.split('.').pop()?.toLowerCase() || 'jpg';
+  const fileName = `${userId}/${Date.now()}.${ext}`;
+
+  const base64 = await FileSystem.readAsStringAsync(localUri, {
+    encoding: 'base64',
+  });
+
+  const mimeType =
+    ext === 'png'  ? 'image/png'  :
+    ext === 'webp' ? 'image/webp' :
+    ext === 'pdf'  ? 'application/pdf' :
+    'image/jpeg';
+
+  const { data, error } = await supabase.storage
+    .from('prescription-images')
+    .upload(fileName, decode(base64), {
+      contentType: mimeType,
+      upsert: false,
+    });
+
+  if (error) throw error;
+
+  const { data: publicData } = supabase.storage
+    .from('prescription-images')
+    .getPublicUrl(data.path);
+
+  return publicData.publicUrl;
+};
+
+/**
+ * Save a prescription record to the user_prescriptions table.
+ */
+export const saveUserPrescription = async ({
+  userId,
+  title,
+  doctorName = null,
+  hospitalName = null,
+  prescriptionDate = null,
+  imageUrl = null,
+  notes = null,
+  tags = [],
+}) => {
+  const { data, error } = await supabase
+    .from('user_prescriptions')
+    .insert({
+      user_id: userId,
+      title,
+      doctor_name: doctorName,
+      hospital_name: hospitalName,
+      prescription_date: prescriptionDate,
+      image_url: imageUrl,
+      notes,
+      tags,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
+
+/**
+ * Fetch all stored prescriptions for a user (newest first).
+ */
+export const getUserPrescriptions = async (userId) => {
+  const { data, error } = await supabase
+    .from('user_prescriptions')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('is_active', true)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+};
+
+/**
+ * Update a prescription record (e.g. notes, tags, title).
+ */
+export const updateUserPrescription = async (prescriptionId, updates) => {
+  const { data, error } = await supabase
+    .from('user_prescriptions')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', prescriptionId)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
+
+/**
+ * Soft-delete (archive) a prescription.
+ */
+export const archiveUserPrescription = async (prescriptionId) => {
+  const { error } = await supabase
+    .from('user_prescriptions')
+    .update({ is_active: false, updated_at: new Date().toISOString() })
+    .eq('id', prescriptionId);
+  if (error) throw error;
+};
+
+// ─── Test Reports ────────────────────────────────────────────────────────────
+
+export const uploadTestReportFile = async (localUri, userId) => {
+  const ext = localUri.split('.').pop()?.toLowerCase() || 'pdf';
+  const fileName = `${userId}/${Date.now()}.${ext}`;
+
+  const base64 = await FileSystem.readAsStringAsync(localUri, {
+    encoding: 'base64',
+  });
+
+  const mimeType =
+    ext === 'png'  ? 'image/png'  :
+    ext === 'jpg'  ? 'image/jpeg' :
+    ext === 'jpeg'  ? 'image/jpeg' :
+    ext === 'pdf'  ? 'application/pdf' :
+    'application/octet-stream';
+
+  const { data, error } = await supabase.storage
+    .from('test-reports')
+    .upload(fileName, decode(base64), {
+      contentType: mimeType,
+      upsert: false,
+    });
+
+  if (error) throw error;
+
+  const { data: publicData } = supabase.storage
+    .from('test-reports')
+    .getPublicUrl(data.path);
+
+  return publicData.publicUrl;
+};
+
+export const saveTestReport = async ({
+  userId,
+  name,
+  labName = null,
+  testDate = null,
+  reportType = null,
+  fileUrl = null,
+  fileType = null,
+  fileSize = null,
+  notes = null,
+}) => {
+  const { data, error } = await supabase
+    .from('test_reports')
+    .insert({
+      user_id: userId,
+      name,
+      lab_name: labName,
+      test_date: testDate,
+      report_type: reportType,
+      file_url: fileUrl,
+      file_type: fileType,
+      file_size: fileSize,
+      notes,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
+
+export const getTestReports = async (userId) => {
+  const { data, error } = await supabase
+    .from('test_reports')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('is_active', true)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+};
+

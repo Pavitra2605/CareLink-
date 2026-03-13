@@ -33,6 +33,7 @@ import {
   ImmunizationScreen, TestReportsScreen, UploadReportScreen,
   TrendAnalysisScreen, MedicationsScreen, AdherenceLogScreen,
   QRShareScreen, DataAccessScreen, AuditLogScreen, ExportDataScreen, SyncStatusScreen,
+  PrescriptionVaultScreen, AddPrescriptionScreen,
 } from '../screens/health';
 
 // Emergency
@@ -197,6 +198,8 @@ function HealthStackScreen() {
       <Stack.Screen name="AuditLog" component={AuditLogScreen} />
       <Stack.Screen name="ExportData" component={ExportDataScreen} />
       <Stack.Screen name="SyncStatus" component={SyncStatusScreen} />
+      <Stack.Screen name="PrescriptionVault" component={PrescriptionVaultScreen} />
+      <Stack.Screen name="AddPrescription" component={AddPrescriptionScreen} />
     </Stack.Navigator>
   );
 }
