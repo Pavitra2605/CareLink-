@@ -4,6 +4,8 @@
  * appointments, consultations, prescriptions and orders.
  */
 import { supabase } from './supabase';
+import * as FileSystem from 'expo-file-system';
+import { decode } from 'base64-arraybuffer';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -191,6 +193,59 @@ export const getPharmacies = async ({ search = '' } = {}) => {
 };
 
 /**
+ * Fetch ALL registered pharmacies (open or closed), optionally filtered by
+ * name search. Used by the prescription-upload pharmacy picker.
+ */
+export const getRegisteredPharmacies = async ({ search = '' } = {}) => {
+  let query = supabase
+    .from('pharmacies')
+    .select('*')
+    .order('name', { ascending: true });
+
+  if (search) {
+    query = query.ilike('name', `%${search}%`);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+};
+
+/**
+ * Upload a prescription image (local URI) to Supabase Storage and return
+ * the public URL. Stores under `prescription-images/<patientId>/<uuid>.jpg`.
+ */
+export const uploadPrescriptionImage = async (localUri, patientId) => {
+  const ext = localUri.split('.').pop()?.toLowerCase() || 'jpg';
+  const fileName = `${patientId}/${Date.now()}.${ext}`;
+
+  // Read file as base64 using expo-file-system (works reliably on iOS/Android native)
+  const base64 = await FileSystem.readAsStringAsync(localUri, {
+    encoding: 'base64',
+  });
+
+  const mimeType =
+    ext === 'png' ? 'image/png' :
+    ext === 'webp' ? 'image/webp' :
+    'image/jpeg';
+
+  const { data, error } = await supabase.storage
+    .from('prescription-images')
+    .upload(fileName, decode(base64), { // Decode base64 to arrayBuffer for Supabase Storage
+      contentType: mimeType,
+      upsert: false,
+    });
+
+  if (error) throw error;
+
+  const { data: publicData } = supabase.storage
+    .from('prescription-images')
+    .getPublicUrl(data.path);
+
+  return publicData.publicUrl;
+};
+
+/**
  * Fetch inventory for a given pharmacy, joined with medicine details.
  */
 export const getPharmacyInventory = async (pharmacyId) => {
@@ -217,6 +272,7 @@ export const createOrder = async ({
   patientId,
   pharmacyId,
   prescriptionId = null,
+  prescriptionImageUrl = null,
   items = [],
   deliveryMode = 'pickup',
   notes = null,
@@ -229,6 +285,7 @@ export const createOrder = async ({
       patient_id: patientId,
       pharmacy_id: pharmacyId,
       prescription_id: prescriptionId,
+      prescription_image_url: prescriptionImageUrl,
       status: 'pending',
       total_amount: totalAmount,
       payment_status: 'pending',

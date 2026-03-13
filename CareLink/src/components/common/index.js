@@ -12,3 +12,4 @@ export { default as EmptyState } from './EmptyState';
 export { default as AppointmentCard } from './AppointmentCard';
 export { default as SearchBar } from './SearchBar';
 export { default as MapboxView } from './MapboxView';
+export { default as PharmacyMap } from './PharmacyMap';

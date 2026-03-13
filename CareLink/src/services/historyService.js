@@ -15,6 +15,9 @@ import { supabase } from './supabase';
 // IMAGE UPLOAD
 // ─────────────────────────────────────────────────────────────
 
+import * as FileSystem from 'expo-file-system';
+import { decode } from 'base64-arraybuffer';
+
 /**
  * Upload a local image URI to Supabase Storage.
  * Returns the public URL or null on failure.
@@ -28,13 +31,14 @@ export async function uploadMedicalImage(userId, localUri) {
       ext === 'webp' ? 'image/webp' :
       'image/jpeg';
 
-    // Fetch the local file as a blob
-    const response = await fetch(localUri);
-    const blob = await response.blob();
+    // Read file as base64 using expo-file-system (works reliably on iOS/Android native)
+    const base64 = await FileSystem.readAsStringAsync(localUri, {
+      encoding: 'base64',
+    });
 
     const { error } = await supabase.storage
       .from('medical-images')
-      .upload(fileName, blob, { contentType: mimeType, upsert: false });
+      .upload(fileName, decode(base64), { contentType: mimeType, upsert: false });
 
     if (error) {
       console.warn('[historyService] image upload failed:', error.message);
