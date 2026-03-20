@@ -932,15 +932,13 @@ The developers and contributors assume **NO liability** for:
 
 ## 📞 Support & Contact
 
-### Documentation
-- 📚 [Full Documentation](./docs)
-- 🔧 [AI Service API Docs](./ai-service/README.md)
-- 📊 [Presentation Analysis](./PRESENTATION_ANALYSIS.md)
-
 ### Community
-- 💬 [GitHub Discussions](https://github.com/yourusername/carelink/discussions)
-- 🐛 [Issue Tracker](https://github.com/yourusername/carelink/issues)
-- 📧 Email: support@carelink.example.com
+- 💬 [GitHub Discussions](https://github.com/Kabilash01/carelink/discussions)
+- 🐛 [Issue Tracker](https://github.com/Kabilash0108@gmail.com/carelink/issues)
+- 📧 Email: kabilash0108@gmail.com
+- 📧 Email: nsdshakthi@gmail.com
+- 📧 Email: mritulashankar@gmail.com
+-  📧 Email: fspavitra11@gmail.com
 
 ### Quick Links
 - [Feature Requests](https://github.com/yourusername/carelink/issues/new?template=feature_request.md)
@@ -952,3 +950,4 @@ The developers and contributors assume **NO liability** for:
 ## 🙏 Acknowledgments
 
 - **MedGemma** - Medical Vision
+- 
