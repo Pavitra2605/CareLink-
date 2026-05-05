@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getTranslation, interpolate, DEFAULT_LANGUAGE, translations } from './index';
+import { translations, DEFAULT_LANGUAGE, getTranslation, interpolate } from './constants';
 import { translateText, translateBatch } from '../services/translationService';
 
 const LANGUAGE_STORAGE_KEY = '@carelink_language';
